@@ -9,7 +9,7 @@ MaterFasum adalah aplikasi berbasis web yang digunakan untuk melaporkan dan mema
 - Monitoring status laporan
 - Manajemen data laporan (admin)
 - Dashboard admin
-- (Opsional) Login pengguna & admin
+- Login pengguna & admin
 
 ## Teknologi yang Digunakan
 - Laravel (Backend Framework)
@@ -18,6 +18,8 @@ MaterFasum adalah aplikasi berbasis web yang digunakan untuk melaporkan dan mema
 
 ## Gambaran Sistem
 Pengguna dapat mengirim laporan terkait fasilitas umum yang rusak, kemudian admin dapat melihat, mengelola, dan memantau status laporan melalui dashboard.
+
+![Dashboard](dashboard.png)
 
 ## Cara Menjalankan Project
 1. Clone repository
