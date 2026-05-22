@@ -250,7 +250,12 @@
                         <i class="bi bi-pencil-square me-2"></i>Edit Laporan
                     </a>
                     <form action="{{ route('user.reports.destroy', $report) }}" method="POST"
-                          onsubmit="return confirm('Yakin hapus laporan ini?')">
+                          class="form-confirm"
+                          data-title="Hapus Laporan"
+                          data-text="Laporan ini akan dihapus secara permanen dan tidak dapat dikembalikan."
+                          data-icon="warning"
+                          data-confirm-text="Ya, Hapus!"
+                          data-cancel-text="Batal">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger w-100" style="border-radius:10px;">
                             <i class="bi bi-trash me-2"></i>Hapus Laporan

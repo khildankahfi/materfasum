@@ -113,7 +113,12 @@
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <form action="{{ route('admin.reports.destroy', $report) }}" method="POST"
-                                          class="d-inline" onsubmit="return confirm('Hapus laporan ini secara permanen?')">
+                                          class="d-inline form-confirm"
+                                          data-title="Hapus Laporan Permanen"
+                                          data-text="Laporan ini akan dihapus secara permanen dan tidak dapat dikembalikan."
+                                          data-icon="warning"
+                                          data-confirm-text="Ya, Hapus!"
+                                          data-cancel-text="Batal">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:7px;" title="Hapus">
                                             <i class="bi bi-trash"></i>

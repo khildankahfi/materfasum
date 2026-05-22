@@ -322,6 +322,7 @@
     onclick="toggleSidebar()"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -329,6 +330,40 @@
         sidebar.classList.toggle('show');
         backdrop.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Intercept forms with .form-confirm
+        document.querySelectorAll('.form-confirm').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                const title = form.getAttribute('data-title') || 'Konfirmasi';
+                const text = form.getAttribute('data-text') || 'Apakah Anda yakin?';
+                const icon = form.getAttribute('data-icon') || 'question';
+                const confirmText = form.getAttribute('data-confirm-text') || 'Ya';
+                const cancelText = form.getAttribute('data-cancel-text') || 'Batal';
+                
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: icon,
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb', // Blue for User Panel
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: cancelText,
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-4'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
 </script>
 @stack('scripts')
 </body>

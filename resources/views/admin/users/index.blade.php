@@ -111,19 +111,27 @@
                                 <td class="text-muted">{{ $user->created_at->format('d M Y') }}</td>
                                 <td class="text-end pe-4">
                                     {{-- Toggle aktif/nonaktif --}}
-                                    <form action="{{ route('admin.users.toggle', $user) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('admin.users.toggle', $user) }}" method="POST" class="d-inline form-confirm"
+                                          data-title="{{ $user->is_active ? 'Nonaktifkan Akun' : 'Aktifkan Akun' }}"
+                                          data-text="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} akun {{ $user->name }}?"
+                                          data-icon="{{ $user->is_active ? 'warning' : 'question' }}"
+                                          data-confirm-text="{{ $user->is_active ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan' }}"
+                                          data-cancel-text="Batal">
                                         @csrf @method('PATCH')
                                         <button type="submit"
                                                 class="btn btn-sm {{ $user->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
                                                 style="border-radius:7px;"
-                                                title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}"
-                                                onclick="return confirm('{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} akun {{ $user->name }}?')">
+                                                title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
                                             <i class="bi bi-{{ $user->is_active ? 'slash-circle' : 'check-circle' }}"></i>
                                         </button>
                                     </form>
                                     {{-- Hapus --}}
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
-                                          onsubmit="return confirm('Hapus akun {{ $user->name }} secara permanen? Semua laporannya juga akan dihapus.')">
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline form-confirm"
+                                          data-title="Hapus Akun Pengguna"
+                                          data-text="Hapus akun {{ $user->name }} secara permanen? Semua laporannya juga akan ikut dihapus."
+                                          data-icon="warning"
+                                          data-confirm-text="Ya, Hapus Permanen!"
+                                          data-cancel-text="Batal">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger"
                                                 style="border-radius:7px;" title="Hapus">

@@ -198,7 +198,13 @@
                     <i class="bi bi-shield-check me-2" style="color:var(--primary);"></i>Validasi & Update Status
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.reports.update-status', $report) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('admin.reports.update-status', $report) }}" method="POST" enctype="multipart/form-data"
+                          class="form-confirm"
+                          data-title="Update Status Laporan"
+                          data-text="Apakah Anda yakin ingin menyimpan perubahan status laporan ini?"
+                          data-icon="question"
+                          data-confirm-text="Ya, Simpan!"
+                          data-cancel-text="Batal">
                         @csrf
 
                         @if($errors->any())
@@ -244,8 +250,7 @@
                             <small class="text-muted">Upload foto kondisi setelah diperbaiki (opsional)</small>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100" style="border-radius:10px;font-weight:600;"
-                                onclick="return confirm('Yakin update status laporan ini?')">
+                        <button type="submit" class="btn btn-primary w-100" style="border-radius:10px;font-weight:600;">
                             <i class="bi bi-check-circle me-2"></i>Simpan Perubahan
                         </button>
                     </form>
@@ -268,7 +273,12 @@
                     <i class="bi bi-arrow-left me-2"></i>Kembali ke Daftar
                 </a>
                 <form action="{{ route('admin.reports.destroy', $report) }}" method="POST"
-                      onsubmit="return confirm('Hapus laporan ini secara permanen?')">
+                      class="form-confirm"
+                      data-title="Hapus Laporan Permanen"
+                      data-text="Laporan ini akan dihapus secara permanen dan tidak dapat dikembalikan."
+                      data-icon="warning"
+                      data-confirm-text="Ya, Hapus!"
+                      data-cancel-text="Batal">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger w-100" style="border-radius:10px;">
                         <i class="bi bi-trash me-2"></i>Hapus Laporan

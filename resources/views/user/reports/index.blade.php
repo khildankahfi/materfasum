@@ -140,8 +140,12 @@
                                            class="btn btn-sm btn-outline-warning" style="border-radius:7px;" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form action="{{ route('user.reports.destroy', $report) }}" method="POST" class="d-inline"
-                                              onsubmit="return confirm('Hapus laporan ini?')">
+                                        <form action="{{ route('user.reports.destroy', $report) }}" method="POST" class="d-inline form-confirm"
+                                              data-title="Hapus Laporan"
+                                              data-text="Laporan ini akan dihapus dan tidak dapat dikembalikan."
+                                              data-icon="warning"
+                                              data-confirm-text="Ya, Hapus!"
+                                              data-cancel-text="Batal">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:7px;">
                                                 <i class="bi bi-trash"></i>
