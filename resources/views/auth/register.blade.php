@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar - Materfasum</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/css/intlTelInput.css">
+    <link rel="stylesheet" href="{{ asset('vendor/intl-tel-input/css/intlTelInput.css') }}">
     <style>
         * { font-family: 'Inter', sans-serif; }
         body {
@@ -183,8 +183,8 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/js/intlTelInput.min.js"></script>
+<script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('vendor/intl-tel-input/js/intlTelInput.min.js') }}"></script>
 <script>
     const input = document.querySelector("#phone_input");
 
@@ -192,7 +192,7 @@
         initialCountry: "id",
         separateDialCode: true,
         countrySearch: true,
-        loadUtilsOnInit: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/js/utils.js",
+        loadUtilsOnInit: "{{ asset('vendor/intl-tel-input/js/utils.js') }}",
     });
 
     // Prevent leading zero
@@ -208,7 +208,7 @@
         const number   = input.value.replace(/[\s\-]/g, "");
 
         document.getElementById("phone_code").value = dialCode;
-        document.getElementById("phone_full").value  = number ? dialCode + number : "";
+        document.getElementById("phone_full").value  = number ? number : "";
     });
 </script>
 </body>
