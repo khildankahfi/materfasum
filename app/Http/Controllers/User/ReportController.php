@@ -203,4 +203,27 @@ class ReportController extends Controller
         return redirect()->route('user.reports.index')
             ->with('success', 'Laporan berhasil dihapus.');
     }
+
+    public function map()
+    {
+        $reports = Report::whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->with('user')
+            ->get()
+            ->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'category' => $report->category_label,
+                    'status' => $report->status,
+                    'status_label' => $report->status_label,
+                    'location' => $report->location,
+                    'latitude' => (float)$report->latitude,
+                    'longitude' => (float)$report->longitude,
+                    'url' => route('user.reports.show', $report),
+                ];
+            });
+
+        return view('user.reports.map', compact('reports'));
+    }
 }

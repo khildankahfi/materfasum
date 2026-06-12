@@ -1,269 +1,328 @@
 @extends('layouts.user')
 
 @section('title', 'Detail Laporan')
-@section('page-title', 'Detail Laporan')
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('user.reports.index') }}">Laporan</a></li>
-    <li class="breadcrumb-item active">Detail</li>
-@endsection
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-    #map-detail { height: 220px; border-radius: 10px; z-index: 0; }
-
-    /* Timeline */
-    .timeline { position: relative; }
-    .timeline-item { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
-    .timeline-item:not(:last-child) .tl-dot::after {
+    #map-detail {
+        height: 280px;
+        border-radius: 16px;
+        z-index: 1;
+        border: 1px solid #e2e8f0;
+    }
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+    .photo-grid img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .photo-grid img:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    /* Timeline styles */
+    .timeline {
+        position: relative;
+        padding-left: 2.2rem;
+    }
+    .timeline::before {
         content: '';
         position: absolute;
-        top: 36px; left: 17px;
-        width: 2px; bottom: 0;
+        left: 17px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
         background: #e2e8f0;
     }
-    .tl-dot { flex-shrink: 0; position: relative; width: 36px; }
-    .tl-dot .dot {
-        width: 36px; height: 36px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        color: #fff; font-size: .85rem; position: relative; z-index: 1;
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
     }
-    .tl-body { flex-grow: 1; }
-
-    /* Photos */
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: .5rem; }
-    .photo-grid img { width: 100%; height: 95px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: opacity .2s; }
-    .photo-grid img:hover { opacity: .85; }
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: -2.2rem;
+        top: 2px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        color: #fff;
+        z-index: 2;
+    }
 </style>
 @endpush
 
 @section('content')
+<div class="mb-5 flex flex-column md:flex-row md:items-center justify-content-between gap-3">
+    <div>
+        <h4 class="font-extrabold text-2xl tracking-tight text-slate-800 mb-1">
+            Detail Laporan Aduan 🔍
+        </h4>
+        <p class="text-slate-500 font-medium text-xs">
+            Pantau detail laporan Anda beserta status penanganan terbarunya.
+        </p>
+    </div>
+    <div>
+        <a href="{{ route('user.reports.index') }}" class="btn btn-light border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-bold hover-lift text-decoration-none flex items-center justify-center gap-1.5">
+            <i class="bi bi-arrow-left"></i> Kembali ke Riwayat
+        </a>
+    </div>
+</div>
 
 <div class="row g-4">
-    {{-- Detail Laporan --}}
+    <!-- Left Column: Details & Updates -->
     <div class="col-12 col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header d-flex align-items-center justify-content-between">
-                <span><i class="bi bi-file-earmark-text me-2 text-primary"></i>Informasi Laporan</span>
-                <span class="badge badge-{{ $report->status }} px-3 py-2" style="font-size:.78rem;">
+        
+        <!-- Main Info Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4">
+            <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+                <span class="bg-slate-100 text-slate-755 text-xs font-bold py-1 px-3 rounded-lg border border-slate-200/40">
+                    {{ $report->category_label }}
+                </span>
+                <span class="status-badge status-{{ $report->status }} py-1 px-3">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
                     {{ $report->status_label }}
                 </span>
             </div>
-            <div class="card-body">
-                <h5 class="fw-700 mb-3">{{ $report->title }}</h5>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <div class="text-muted mb-1" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Kategori</div>
-                        <span class="badge bg-light text-dark px-2 py-1">{{ $report->category_label }}</span>
-                    </div>
-                    <div class="col-6">
-                        <div class="text-muted mb-1" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Tanggal Lapor</div>
-                        <div style="font-size:.9rem;">{{ $report->created_at->format('d F Y, H:i') }} WIB</div>
-                    </div>
-                    <div class="col-12">
-                        <div class="text-muted mb-1" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Lokasi</div>
-                        <div style="font-size:.9rem;"><i class="bi bi-geo-alt text-danger me-1"></i>{{ $report->location }}</div>
-                    </div>
+            <h4 class="font-bold text-slate-800 mb-3 leading-snug">{{ $report->title }}</h4>
+            
+            <div class="flex items-center gap-2 text-slate-400 font-bold text-xs mb-4">
+                <span><i class="bi bi-calendar3 me-1"></i>{{ $report->created_at->format('d M Y, H:i') }} WIB</span>
+                <span>•</span>
+                <span><i class="bi bi-person me-1"></i>Pelapor: Anda</span>
+            </div>
+
+            <hr class="border-slate-100 my-4">
+
+            <div class="space-y-4">
+                <!-- Location -->
+                <div>
+                    <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1.5 block">Lokasi Kerusakan</label>
+                    <p class="text-sm font-bold text-slate-700 mb-0">
+                        <i class="bi bi-geo-alt-fill text-rose-500 me-1.5"></i>{{ $report->location }}
+                    </p>
                 </div>
 
-                @if($report->latitude && $report->longitude)
-                    <div class="mb-4">
-                        <div class="text-muted mb-2" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Peta Lokasi</div>
-                        <div id="map-detail"></div>
-                    </div>
-                @endif
-
-                <div class="mb-4">
-                    <div class="text-muted mb-2" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Deskripsi Kerusakan</div>
-                    <p style="font-size:.9rem;line-height:1.7;color:#374151;">{{ $report->description }}</p>
+                <!-- Description -->
+                <div>
+                    <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1.5 block">Deskripsi Kerusakan</label>
+                    <p class="text-slate-650 text-xs leading-relaxed mb-0 bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50" style="white-space: pre-line; font-weight: 500;">{{ $report->description }}</p>
                 </div>
 
-                {{-- Multiple Photos --}}
+                <!-- Photos -->
                 @php $allPhotos = $report->all_photos; @endphp
                 @if(count($allPhotos) > 0)
                     <div>
-                        <div class="text-muted mb-2" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">
-                            Foto Kerusakan ({{ count($allPhotos) }} foto)
-                        </div>
+                        <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2.5 block">Foto Kerusakan ({{ count($allPhotos) }})</label>
                         <div class="photo-grid">
                             @foreach($allPhotos as $url)
-                                <img src="{{ $url }}" alt="Foto laporan"
-                                     onclick="window.open(this.src,'_blank')" title="Klik untuk perbesar">
+                                <img src="{{ $url }}" alt="Foto laporan" onclick="window.open(this.src,'_blank')" title="Klik untuk memperbesar">
                             @endforeach
                         </div>
-                        <small class="text-muted mt-1 d-block">Klik foto untuk memperbesar</small>
                     </div>
                 @endif
 
+                <!-- Rejection Reason -->
                 @if($report->status === 'ditolak' && $report->rejection_reason)
-                    <div class="alert alert-danger mt-4" style="border-radius:10px;">
-                        <div class="fw-600 mb-1"><i class="bi bi-x-circle-fill me-2"></i>Alasan Penolakan</div>
-                        <div style="font-size:.88rem;">{{ $report->rejection_reason }}</div>
+                    <div class="bg-rose-50 border border-rose-200/50 rounded-2xl p-4 mt-4">
+                        <h6 class="font-bold text-rose-800 text-xs mb-1"><i class="bi bi-x-circle-fill me-2"></i>Alasan Penolakan</h6>
+                        <p class="text-xs text-rose-700 font-semibold mb-0 leading-normal">{{ $report->rejection_reason }}</p>
                     </div>
                 @endif
             </div>
         </div>
 
-        {{-- Timeline Riwayat Visual --}}
-        <div class="card">
-            <div class="card-header"><i class="bi bi-clock-history me-2 text-primary"></i>Riwayat Pembaruan</div>
-            <div class="card-body">
-
-                {{-- Progress bar status --}}
-                <div class="mb-4 px-1">
-                    @php
-                        $steps = ['menunggu','diproses','selesai'];
-                        $stepLabels = ['Menunggu','Diproses','Selesai'];
-                        $currentIdx = array_search($report->status, $steps);
-                        if ($report->status === 'ditolak') $currentIdx = 1;
-                    @endphp
-                    <div class="d-flex align-items-center justify-content-between position-relative">
-                        {{-- Garis latar --}}
-                        <div style="position:absolute;top:16px;left:10%;right:10%;height:3px;background:#e2e8f0;z-index:0;"></div>
-                        {{-- Garis aktif --}}
-                        <div style="position:absolute;top:16px;left:10%;
-                            width:{{ $report->status === 'ditolak' ? '40%' : ($currentIdx >= 2 ? '80%' : ($currentIdx * 40)) . '%' }};
-                            height:3px;background:#2563eb;z-index:1;transition:width .5s;"></div>
-
-                        @foreach($steps as $idx => $step)
-                            @php
-                                $isDone    = $currentIdx !== false && $idx < $currentIdx;
-                                $isCurrent = $idx === $currentIdx && $report->status !== 'ditolak';
-                                $isRejected= $report->status === 'ditolak' && $idx === 1;
-                            @endphp
-                            <div class="text-center" style="position:relative;z-index:2;flex:1;">
-                                <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center text-white mb-1"
-                                     style="width:32px;height:32px;font-size:.8rem;
-                                     background:{{ $isDone ? '#10b981' : ($isCurrent ? '#2563eb' : ($isRejected && $idx===1 ? '#ef4444' : '#e2e8f0')) }};
-                                     color:{{ ($isDone||$isCurrent||$isRejected) ? 'white' : '#94a3b8' }};">
-                                    @if($isDone)
-                                        <i class="bi bi-check-lg"></i>
-                                    @elseif($isRejected && $idx===1)
-                                        <i class="bi bi-x-lg"></i>
-                                    @else
-                                        {{ $idx + 1 }}
-                                    @endif
-                                </div>
-                                <div style="font-size:.72rem;font-weight:600;
-                                    color:{{ $isDone ? '#10b981' : ($isCurrent ? '#2563eb' : '#94a3b8') }};">
-                                    {{ $stepLabels[$idx] }}
-                                    @if($report->status === 'ditolak' && $idx === 1)
-                                        <br><span style="color:#ef4444;">Ditolak</span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+        <!-- Location Map Card -->
+        @if($report->latitude && $report->longitude)
+            <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4">
+                <div class="mb-3">
+                    <h6 class="font-bold text-slate-800 mb-1">Koordinat Lokasi Peta</h6>
+                    <p class="text-[11px] text-slate-400 font-semibold mb-0 uppercase tracking-wider">Lokasi persis pengaduan ditandai pada peta</p>
                 </div>
-
-                @if($report->updates->isEmpty())
-                    <div class="text-center py-3 text-muted">
-                        <i class="bi bi-hourglass-split fs-2 d-block mb-2 opacity-50"></i>
-                        <p class="mb-0 small">Belum ada pembaruan. Laporan sedang menunggu ditinjau oleh admin.</p>
-                    </div>
-                @else
-                    <div class="timeline mt-3">
-                        @foreach($report->updates as $update)
-                            @php
-                                $dotColor = match($update->status) {
-                                    'diproses' => '#0ea5e9', 'selesai' => '#10b981',
-                                    'ditolak'  => '#ef4444', default   => '#94a3b8'
-                                };
-                                $dotIcon = match($update->status) {
-                                    'diproses' => 'gear-fill', 'selesai' => 'check-lg',
-                                    'ditolak'  => 'x-lg',     default   => 'clock'
-                                };
-                            @endphp
-                            <div class="timeline-item">
-                                <div class="tl-dot">
-                                    <div class="dot" style="background:{{ $dotColor }};">
-                                        <i class="bi bi-{{ $dotIcon }}"></i>
-                                    </div>
-                                </div>
-                                <div class="tl-body">
-                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                                        <span class="fw-600" style="font-size:.88rem;">
-                                            Status diubah ke
-                                            <span class="badge badge-{{ $update->status }} ms-1">{{ $update->status_label }}</span>
-                                        </span>
-                                        <small class="text-muted text-nowrap">{{ $update->created_at->format('d M Y, H:i') }}</small>
-                                    </div>
-                                    <small class="text-muted">oleh <strong>{{ $update->admin->name }}</strong></small>
-
-                                    @if($update->note)
-                                        <div class="mt-2 p-2 rounded" style="background:#f8fafc;font-size:.85rem;border-left:3px solid {{ $dotColor }};">
-                                            <i class="bi bi-chat-left-text me-1 text-muted"></i>{{ $update->note }}
-                                        </div>
-                                    @endif
-                                    @if($update->photo_after)
-                                        <div class="mt-2">
-                                            <img src="{{ Storage::url($update->photo_after) }}" class="rounded"
-                                                 style="max-height:140px;cursor:pointer;border-radius:8px!important;"
-                                                 onclick="window.open(this.src,'_blank')">
-                                            <div class="text-muted mt-1" style="font-size:.72rem;">
-                                                <i class="bi bi-image me-1"></i>Foto kondisi setelah diperbaiki
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+                <div id="map-detail"></div>
             </div>
+        @endif
+
+        <!-- Progress Updates Timeline -->
+        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm">
+            <div class="mb-4">
+                <h5 class="font-bold text-slate-800 mb-1">Status Penanganan Laporan</h5>
+                <p class="text-xs text-slate-400 font-semibold mb-0 uppercase tracking-wider">Riwayat pembaruan pengerjaan oleh petugas lapangan</p>
+            </div>
+
+            <!-- Horizontal Progress Indicator -->
+            <div class="mb-5 px-2">
+                @php
+                    $steps = ['menunggu','diproses','selesai'];
+                    $stepLabels = ['Menunggu','Diproses','Selesai'];
+                    $currentIdx = array_search($report->status, $steps);
+                    if ($report->status === 'ditolak') $currentIdx = 1;
+                @endphp
+                <div class="d-flex align-items-center justify-content-between position-relative">
+                    <div class="position-absolute top-[16px] start-[10%] end-[10%] h-[2px] bg-slate-100 z-0"></div>
+                    <div class="position-absolute top-[16px] start-[10%] h-[2px] bg-blue-600 z-1 transition-all duration-500"
+                         style="width: {{ $report->status === 'ditolak' ? '40%' : ($currentIdx >= 2 ? '80%' : ($currentIdx * 40)) . '%' }}"></div>
+
+                    @foreach($steps as $idx => $step)
+                        @php
+                            $isDone = $currentIdx !== false && $idx < $currentIdx;
+                            $isCurrent = $idx === $currentIdx && $report->status !== 'ditolak';
+                            $isRejected = $report->status === 'ditolak' && $idx === 1;
+                        @endphp
+                        <div class="text-center z-10 flex-grow-1">
+                            <div class="rounded-full mx-auto h-8 w-8 flex items-center justify-center text-xs font-bold border-4 border-white shadow-sm
+                                 {{ $isDone ? 'bg-emerald-500 text-white' : ($isCurrent ? 'bg-blue-600 text-white' : ($isRejected ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-400')) }}">
+                                @if($isDone)
+                                    <i class="bi bi-check-lg"></i>
+                                @elseif($isRejected)
+                                    <i class="bi bi-x-lg"></i>
+                                @else
+                                    {{ $idx + 1 }}
+                                @endif
+                            </div>
+                            <span class="text-[10px] font-bold block mt-1.5 uppercase tracking-wider
+                                  {{ $isDone ? 'text-emerald-600' : ($isCurrent ? 'text-blue-600' : ($isRejected ? 'text-rose-600' : 'text-slate-400')) }}">
+                                {{ $stepLabels[$idx] }}
+                                @if($isRejected)
+                                    <br><span class="text-[9px] lowercase font-semibold text-rose-500">(ditolak)</span>
+                                @endif
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Vertical Detailed Timeline -->
+            @if($report->updates->isEmpty())
+                <div class="text-center py-6 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <i class="bi bi-hourglass-split fs-2 d-block mb-1.5 text-slate-300"></i>
+                    <p class="mb-0 text-xs font-semibold">Laporan baru dikirimkan. Menunggu tinjauan dinas verifikator.</p>
+                </div>
+            @else
+                <div class="timeline">
+                    @foreach($report->updates as $update)
+                        @php
+                            $dotColor = match($update->status) {
+                                'diproses' => 'bg-blue-500', 'selesai' => 'bg-emerald-500',
+                                'ditolak' => 'bg-rose-500', default => 'bg-slate-400'
+                            };
+                            $dotIcon = match($update->status) {
+                                'diproses' => 'bi-gear-wide-connected', 'selesai' => 'bi-check-lg',
+                                'ditolak' => 'bi-x-lg', default => 'bi-clock'
+                            };
+                            $borderCol = match($update->status) {
+                                'diproses' => 'border-blue-200/60', 'selesai' => 'border-emerald-200/60',
+                                'ditolak' => 'border-rose-200/60', default => 'border-slate-200/60'
+                            };
+                        @endphp
+                        <div class="timeline-item">
+                            <div class="timeline-dot {{ $dotColor }}">
+                                <i class="bi {{ $dotIcon }}"></i>
+                            </div>
+                            <div class="bg-slate-50/40 p-3.5 rounded-2xl border border-slate-100 space-y-2">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <span class="text-xs font-bold text-slate-700">
+                                        Petugas mengubah status menjadi: 
+                                        <span class="status-badge status-{{ $update->status }} ms-1 text-[10px] py-0.5 px-2">
+                                            {{ $update->status_label }}
+                                        </span>
+                                    </span>
+                                    <small class="text-slate-400 text-[10px] font-bold">{{ $update->created_at->format('d M Y, H:i') }} WIB</small>
+                                </div>
+                                <div class="text-slate-400 font-bold text-[10px]"><i class="bi bi-person-check me-1"></i>Verifikator: {{ $update->admin->name }}</div>
+
+                                @if($update->note)
+                                    <div class="p-3 bg-white rounded-xl border-l-4 {{ $update->status === 'diproses' ? 'border-blue-500' : ($update->status === 'selesai' ? 'border-emerald-500' : 'border-rose-500') }} text-xs font-semibold text-slate-600 leading-normal">
+                                        <i class="bi bi-chat-left-quote me-1 text-slate-400"></i>{{ $update->note }}
+                                    </div>
+                                @endif
+
+                                @if($update->photo_after)
+                                    <div class="mt-2.5">
+                                        <img src="{{ Storage::url($update->photo_after) }}" class="rounded-xl border border-slate-200/60 cursor-pointer max-h-36 object-cover" onclick="window.open(this.src,'_blank')">
+                                        <div class="text-[10px] text-slate-400 font-semibold mt-1"><i class="bi bi-image me-1"></i>Kondisi penanganan setelah pengerjaan selesai</div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
+
     </div>
 
-    {{-- Sidebar Kanan --}}
+    <!-- Right Column: Actions & Quick Status -->
     <div class="col-12 col-lg-4">
-        <div class="card mb-4">
-            <div class="card-header"><i class="bi bi-info-circle me-2 text-primary"></i>Status Laporan</div>
-            <div class="card-body text-center py-4">
-                @php
-                    $iconMap  = ['menunggu'=>'hourglass-split','diproses'=>'gear','selesai'=>'check-circle','ditolak'=>'x-circle'];
-                    $colorMap = ['menunggu'=>'#f59e0b','diproses'=>'#0ea5e9','selesai'=>'#10b981','ditolak'=>'#ef4444'];
-                @endphp
-                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 text-white"
-                     style="width:64px;height:64px;background:{{ $colorMap[$report->status] }};font-size:1.6rem;">
-                    <i class="bi bi-{{ $iconMap[$report->status] }}"></i>
-                </div>
-                <h5 class="fw-700">{{ $report->status_label }}</h5>
-                <p class="text-muted mb-0" style="font-size:.85rem;">
-                    @if($report->status === 'menunggu') Laporan Anda sedang menunggu ditinjau.
-                    @elseif($report->status === 'diproses') Laporan sedang dalam proses perbaikan.
-                    @elseif($report->status === 'selesai') Laporan telah diselesaikan. Terima kasih!
-                    @else Laporan ditolak. Lihat alasan di atas.
-                    @endif
-                </p>
+        
+        <!-- Status Box -->
+        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4 text-center">
+            @php
+                $statusColors = ['menunggu'=>'#f59e0b','diproses'=>'#0284c7','selesai'=>'#10b981','ditolak'=>'#f43f5e'];
+                $statusIcons = ['menunggu'=>'bi-hourglass-split','diproses'=>'bi-gear-wide-connected','selesai'=>'bi-check-circle-fill','ditolak'=>'bi-x-circle-fill'];
+            @endphp
+            <div class="rounded-full h-14 w-14 flex items-center justify-center mx-auto mb-3 shadow-md border border-white text-white animate-pulse"
+                 style="background-color: {{ $statusColors[$report->status] }};">
+                <i class="bi {{ $statusIcons[$report->status] }} fs-4"></i>
             </div>
+            <h5 class="font-extrabold text-slate-800 mb-1.5">{{ $report->status_label }}</h5>
+            <p class="text-slate-400 font-semibold text-xs leading-normal mb-0 max-w-xs mx-auto">
+                @if($report->status === 'menunggu')
+                    Laporan aduan telah terdaftar di database kami dan sedang menunggu verifikasi oleh verifikator kota.
+                @elseif($report->status === 'diproses')
+                    Laporan telah divalidasi dan saat ini sedang dalam pengerjaan pemeliharaan oleh dinas terkait.
+                @elseif($report->status === 'selesai')
+                    Fasilitas umum yang dilaporkan telah selesai diperbaiki. Terima kasih telah ikut berpartisipasi menjaga kota!
+                @else
+                    Maaf, laporan Anda ditolak karena belum memenuhi kriteria kelayakan fasilitas umum atau data kurang valid.
+                @endif
+            </p>
         </div>
 
-        <div class="card">
-            <div class="card-header"><i class="bi bi-gear me-2 text-primary"></i>Aksi</div>
-            <div class="card-body d-grid gap-2">
-                <a href="{{ route('user.reports.index') }}" class="btn btn-outline-secondary" style="border-radius:10px;">
-                    <i class="bi bi-arrow-left me-2"></i>Kembali
+        <!-- Action Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 shadow-sm space-y-2.5">
+            <h6 class="font-bold text-slate-800 mb-3"><i class="bi bi-shield-lock me-2 text-slate-450"></i>Panel Kontrol Aduan</h6>
+            
+            <a href="{{ route('user.reports.index') }}" class="btn btn-light border border-slate-200 text-slate-600 rounded-xl py-2 px-3 text-xs font-bold text-decoration-none w-100 flex items-center justify-center gap-1.5 hover-lift">
+                <i class="bi bi-arrow-left"></i> Kembali ke Riwayat
+            </a>
+
+            @if($report->status === 'menunggu')
+                <a href="{{ route('user.reports.edit', $report) }}" class="btn btn-light border border-slate-200 text-amber-600 rounded-xl py-2 px-3 text-xs font-bold text-decoration-none w-100 flex items-center justify-center gap-1.5 hover-lift">
+                    <i class="bi bi-pencil-square"></i> Edit Data Laporan
                 </a>
-                @if($report->status === 'menunggu')
-                    <a href="{{ route('user.reports.edit', $report) }}" class="btn btn-warning text-dark" style="border-radius:10px;font-weight:600;">
-                        <i class="bi bi-pencil-square me-2"></i>Edit Laporan
-                    </a>
-                    <form action="{{ route('user.reports.destroy', $report) }}" method="POST"
-                          class="form-confirm"
-                          data-title="Hapus Laporan"
-                          data-text="Laporan ini akan dihapus secara permanen dan tidak dapat dikembalikan."
-                          data-icon="warning"
-                          data-confirm-text="Ya, Hapus!"
-                          data-cancel-text="Batal">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger w-100" style="border-radius:10px;">
-                            <i class="bi bi-trash me-2"></i>Hapus Laporan
-                        </button>
-                    </form>
-                @endif
-            </div>
+                
+                <form action="{{ route('user.reports.destroy', $report) }}" method="POST" class="form-confirm m-0">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-light border border-slate-200 text-rose-600 rounded-xl py-2 px-3 text-xs font-bold w-100 flex items-center justify-center gap-1.5 hover-lift">
+                        <i class="bi bi-trash"></i> Hapus Laporan
+                    </button>
+                </form>
+            @else
+                <div class="bg-slate-50 text-slate-400 rounded-xl p-3 border border-slate-100 text-[10px] font-semibold leading-normal text-start">
+                    <i class="bi bi-lock-fill me-1"></i> Kontrol ubah laporan telah dikunci secara otomatis karena aduan ini sudah mulai ditinjau/diproses oleh petugas.
+                </div>
+            @endif
         </div>
+
     </div>
 </div>
 @endsection
@@ -277,7 +336,20 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-    L.marker([{{ $report->latitude }}, {{ $report->longitude }}])
+    
+    // Custom pin color based on status
+    const color = "{{ $report->status === 'selesai' ? '#10b981' : ($report->status === 'diproses' ? '#0284c7' : '#f59e0b') }}";
+    const svgIcon = L.divIcon({
+        html: `<svg width="30" height="42" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 0C6.71573 0 0 6.71573 0 15C0 24.375 15 42 15 42C15 42 30 24.375 30 15C30 6.71573 23.2843 0 15 0ZM15 20.5C11.9624 20.5 9.5 18.0376 9.5 15C9.5 11.9624 11.9624 9.5 15 9.5C18.0376 9.5 20.5 11.9624 20.5 15C20.5 18.0376 18.0376 20.5 15 20.5Z" fill="${color}"/>
+               </svg>`,
+        className: "",
+        iconSize: [30, 42],
+        iconAnchor: [15, 42],
+        popupAnchor: [0, -42]
+    });
+
+    L.marker([{{ $report->latitude }}, {{ $report->longitude }}], { icon: svgIcon })
      .addTo(map)
      .bindPopup('<strong>{{ addslashes($report->title) }}</strong><br>{{ addslashes($report->location) }}')
      .openPopup();

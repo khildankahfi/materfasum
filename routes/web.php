@@ -19,7 +19,12 @@ Route::get('/', function () {
             ? redirect()->route('admin.dashboard')
             : redirect()->route('user.dashboard');
     }
-    return redirect()->route('login');
+    
+    $totalReports = \App\Models\Report::count();
+    $resolvedReports = \App\Models\Report::where('status', 'selesai')->count();
+    $totalUsers = \App\Models\User::where('role', 'user')->count();
+    
+    return view('welcome', compact('totalReports', 'resolvedReports', 'totalUsers'));
 });
 
 Route::middleware('guest')->group(function () {
@@ -38,6 +43,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // ── User Panel ──
 Route::middleware(['auth', 'user.role'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/reports/map', [UserReportController::class, 'map'])->name('reports.map');
     Route::resource('reports', UserReportController::class)
          ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     Route::get('/notifications',             [NotificationController::class, 'index'])->name('notifications.index');

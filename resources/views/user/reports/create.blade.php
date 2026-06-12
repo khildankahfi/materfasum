@@ -1,218 +1,284 @@
 @extends('layouts.user')
 
 @section('title', 'Buat Laporan')
-@section('page-title', 'Buat Laporan Baru')
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('user.reports.index') }}">Laporan</a></li>
-    <li class="breadcrumb-item active">Buat Laporan</li>
-@endsection
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-    #map { height: 280px; border-radius: 10px; z-index: 0; border: 1px solid #e2e8f0; }
-    .photo-drop-area {
-        border: 2px dashed #e2e8f0; border-radius: 10px;
-        padding: 1.5rem; text-align: center; cursor: pointer;
-        transition: border-color .2s, background .2s;
+    #map {
+        height: 380px;
+        border-radius: 16px;
+        z-index: 1;
+        border: 1px solid #e2e8f0;
     }
-    .photo-drop-area:hover, .photo-drop-area.dragover { border-color: #2563eb; background: #eff6ff; }
-    .photo-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: .5rem; margin-top: .75rem; }
-    .photo-thumb-wrap { position: relative; }
-    .photo-thumb-wrap img { width: 100%; height: 80px; object-fit: cover; border-radius: 8px; display: block; }
+    .photo-drop-area {
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 2.25rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+    }
+    .photo-drop-area:hover, .photo-drop-area.dragover {
+        border-color: #2563eb;
+        background-color: #eff6ff;
+    }
+    .photo-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    .photo-thumb-wrap {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .photo-thumb-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
     .photo-thumb-wrap .remove-btn {
-        position: absolute; top: 3px; right: 3px;
-        background: rgba(239,68,68,.9); border: none; border-radius: 50%;
-        width: 22px; height: 22px; color: #fff;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; font-size: .7rem;
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: rgba(244, 63, 94, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .photo-thumb-wrap .remove-btn:hover {
+        transform: scale(1.1);
     }
 </style>
 @endpush
 
 @section('content')
+<div class="mb-5">
+    <h4 class="font-extrabold text-2xl tracking-tight text-slate-800 mb-1">
+        Buat Pengaduan Baru 📝
+    </h4>
+    <p class="text-slate-500 font-medium text-xs">
+        Laporkan kerusakan fasilitas umum untuk segera ditindaklanjuti oleh dinas terkait Gresik.
+    </p>
+</div>
 
-<div class="row justify-content-center">
-    <div class="col-12 col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-plus-circle me-2 text-primary"></i>Form Laporan Kerusakan Fasilitas
-            </div>
-            <div class="card-body">
+@if($errors->any())
+    <div class="alert alert-danger border-0 shadow-sm rounded-xl d-flex align-items-start gap-3 py-3 px-4 mb-4 bg-rose-50 text-rose-800" role="alert">
+        <div class="bg-rose-500 text-white rounded-full p-1 h-7 w-7 flex items-center justify-center mt-0.5 flex-shrink-0">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <div class="flex-grow-1 text-xs font-semibold">
+            <strong class="block mb-1">Terjadi kesalahan input data:</strong>
+            <ul class="mb-0 ps-3 list-disc">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 
-                @if($errors->any())
-                    <div class="alert alert-danger mb-4" style="border-radius:10px;">
-                        <i class="bi bi-exclamation-circle-fill me-2"></i><strong>Terjadi kesalahan:</strong>
-                        <ul class="mb-0 mt-1 ps-3">
-                            @foreach($errors->all() as $error)
-                                <li style="font-size:.88rem;">{{ $error }}</li>
+<form action="{{ route('user.reports.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+
+    <div class="row g-4">
+        <!-- Left Panel: Form fields -->
+        <div class="col-12 col-lg-7">
+            <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm space-y-4">
+                
+                <!-- Judul -->
+                <div>
+                    <label class="form-label text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Judul Laporan <span class="text-rose-500">*</span></label>
+                    <input type="text" name="title" class="form-control border-slate-200/80 text-xs focus:border-blue-500 focus:ring-0 shadow-none text-slate-800"
+                           placeholder="Contoh: Jalan berlubang lebar di simpang Gubeng"
+                           value="{{ old('title') }}" style="border-radius:12px; padding: 0.7rem 0.9rem; font-weight:500;">
+                </div>
+
+                <!-- Kategori & Lokasi -->
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Kategori <span class="text-rose-500">*</span></label>
+                        <select name="category" class="form-select border-slate-200/80 text-xs focus:border-blue-500 shadow-none text-slate-700" style="border-radius:12px; padding: 0.7rem 0.9rem; font-weight:500;">
+                            <option value="">Pilih Kategori</option>
+                            @foreach($categories as $key => $label)
+                                <option value="{{ $key }}" {{ (request('category') === $key || old('category') === $key) ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
-                        </ul>
+                        </select>
                     </div>
-                @endif
-
-                <form action="{{ route('user.reports.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">Judul Laporan <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
-                               placeholder="Contoh: Lampu Jalan Padam di Jl. Sudirman"
-                               value="{{ old('title') }}" style="border-radius:10px;">
-                        @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Alamat Lokasi <span class="text-rose-500">*</span></label>
+                        <input type="text" name="location" id="location"
+                               class="form-control border-slate-200/80 text-xs focus:border-blue-500 shadow-none text-slate-850"
+                               placeholder="Contoh: Jl. Raya Gubeng No. 12"
+                               value="{{ old('location') }}" style="border-radius:12px; padding: 0.7rem 0.9rem; font-weight:500;">
                     </div>
+                </div>
 
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-600" style="font-size:.88rem;">Kategori <span class="text-danger">*</span></label>
-                            <select name="category" class="form-select @error('category') is-invalid @enderror" style="border-radius:10px;">
-                                <option value="">Pilih Kategori</option>
-                                @foreach($categories as $key => $label)
-                                    <option value="{{ $key }}" {{ old('category') === $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <!-- Deskripsi -->
+                <div>
+                    <label class="form-label text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Deskripsi Kerusakan <span class="text-rose-500">*</span></label>
+                    <textarea name="description" rows="5"
+                              class="form-control border-slate-200/80 text-xs focus:border-blue-500 shadow-none text-slate-800"
+                              placeholder="Jelaskan kondisi kerusakan secara lengkap dan dampaknya bagi warga sekitar (minimal 20 karakter)..."
+                              style="border-radius:12px; padding: 0.7rem 0.9rem; font-weight:500;">{{ old('description') }}</textarea>
+                    <div class="d-flex justify-content-end mt-1.5">
+                        <small class="text-slate-450 font-bold text-[10px]" id="charCount">0 karakter</small>
+                    </div>
+                </div>
+
+                <!-- Upload Photo dropzone -->
+                <div>
+                    <label class="form-label text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Upload Foto Kerusakan <small class="text-slate-400 lowercase font-bold">(maksimal 5 foto, masing-masing maks 5MB)</small>
+                    </label>
+                    
+                    <div class="photo-drop-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
+                        <div class="bg-slate-200/60 text-slate-500 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-2.5">
+                            <i class="bi bi-cloud-arrow-up-fill fs-4"></i>
                         </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-600" style="font-size:.88rem;">Lokasi <span class="text-danger">*</span></label>
-                            <input type="text" name="location" id="location"
-                                   class="form-control @error('location') is-invalid @enderror"
-                                   placeholder="Masukkan alamat lokasi"
-                                   value="{{ old('location') }}" style="border-radius:10px;">
-                            @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
+                        <div class="font-bold text-slate-700 text-sm mb-1">Klik atau seret foto kerusakan ke sini</div>
+                        <small class="text-slate-400 text-xs font-semibold">Mendukung format JPG, PNG, WEBP</small>
+                        <input type="file" id="photoInput" name="photos[]" accept="image/*"
+                               multiple style="display:none;">
                     </div>
+                    
+                    <div class="photo-preview-grid" id="previewGrid"></div>
+                    
+                    <div class="d-flex justify-content-end mt-2">
+                        <small class="text-slate-400 font-bold text-[10px]" id="photoCount">0 / 5 foto dipilih</small>
+                    </div>
+                </div>
 
-                    {{-- Peta --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">
-                            Tandai Lokasi di Peta <span class="text-muted fw-normal">(opsional, klik peta untuk menandai)</span>
-                        </label>
-                        <div id="map" class="mb-2"></div>
-                        <div class="d-flex align-items-center gap-3">
-                            <small class="text-muted" id="coordsLabel"><i class="bi bi-geo-alt me-1"></i>Belum ada titik dipilih</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" style="border-radius:8px;font-size:.78rem;" onclick="resetMap()">
-                                <i class="bi bi-x-circle me-1"></i>Reset Pin
-                            </button>
-                        </div>
-                        <input type="hidden" name="latitude"  id="latitude"  value="{{ old('latitude') }}">
-                        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
-                    </div>
+                <!-- Actions buttons -->
+                <div class="d-flex gap-3 pt-3">
+                    <button type="submit" class="btn btn-primary shadow-lg shadow-blue-500/20 px-4 py-2.5 rounded-xl text-xs font-bold hover-lift flex items-center gap-1.5">
+                        <i class="bi bi-send-fill text-[11px]"></i> Kirim Pengaduan Warga
+                    </button>
+                    <a href="{{ route('user.reports.index') }}" class="btn btn-light border border-slate-200 text-slate-650 px-4 py-2.5 rounded-xl text-xs font-bold hover-lift">
+                        Batal
+                    </a>
+                </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">Deskripsi Kerusakan <span class="text-danger">*</span></label>
-                        <textarea name="description" rows="5"
-                                  class="form-control @error('description') is-invalid @enderror"
-                                  placeholder="Jelaskan kerusakan secara detail (minimal 20 karakter)"
-                                  style="border-radius:10px;">{{ old('description') }}</textarea>
-                        <div class="d-flex justify-content-end mt-1">
-                            <small class="text-muted" id="charCount">0 karakter</small>
-                        </div>
-                        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    {{-- Multiple Photos --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">
-                            Foto Kerusakan <small class="text-muted fw-normal">(opsional, maks. 5 foto, masing-masing maks. 5MB)</small>
-                        </label>
-                        <div class="photo-drop-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
-                            <i class="bi bi-cloud-upload fs-2 text-muted d-block mb-1"></i>
-                            <div class="fw-500" style="font-size:.88rem;">Klik atau seret foto ke sini</div>
-                            <small class="text-muted">JPG, PNG, WEBP — maks. 5 foto</small>
-                            <input type="file" id="photoInput" name="photos[]" accept="image/*"
-                                   multiple style="display:none;"
-                                   class="@error('photos') is-invalid @enderror @error('photos.*') is-invalid @enderror">
-                        </div>
-                        <div class="photo-preview-grid" id="previewGrid"></div>
-                        <div class="d-flex justify-content-between mt-1">
-                            @error('photos')<div class="text-danger" style="font-size:.83rem;">{{ $message }}</div>@enderror
-                            @error('photos.*')<div class="text-danger" style="font-size:.83rem;">{{ $message }}</div>@enderror
-                            <small class="text-muted ms-auto" id="photoCount">0 / 5 foto dipilih</small>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-3 pt-2">
-                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600;">
-                            <i class="bi bi-send me-2"></i>Kirim Laporan
-                        </button>
-                        <a href="{{ route('user.reports.index') }}" class="btn btn-outline-secondary" style="border-radius:10px;">Batal</a>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
 
-    <div class="col-12 col-lg-4">
-        <div class="card">
-            <div class="card-header"><i class="bi bi-lightbulb me-2 text-warning"></i>Tips Laporan Baik</div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0" style="font-size:.85rem;">
-                    <li class="d-flex gap-2 mb-3">
-                        <span class="badge bg-primary rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" style="width:22px;height:22px;font-size:.7rem;">1</span>
-                        <span class="text-muted">Berikan <strong>judul yang jelas</strong> dan spesifik tentang kerusakan.</span>
+        <!-- Right Panel: Map Selection & Tips -->
+        <div class="col-12 col-lg-5">
+            <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4 space-y-4">
+                <div>
+                    <h6 class="font-bold text-slate-800 mb-1">Tandai Titik di Peta</h6>
+                    <p class="text-[11px] text-slate-400 font-semibold mb-0 uppercase tracking-wider">Klik peta untuk menaruh pin penanda lokasi persis aduan Anda</p>
+                </div>
+
+                <div id="map" class="mb-2"></div>
+
+                <div class="d-flex align-items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <small class="text-slate-600 font-bold text-xs leading-none" id="coordsLabel">
+                        <i class="bi bi-geo-alt me-1 text-slate-400"></i>Belum ada titik dipilih
+                    </small>
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1.5 rounded-lg text-[10px] font-bold" onclick="resetMap()">
+                        <i class="bi bi-trash me-1"></i>Hapus Pin
+                    </button>
+                </div>
+                
+                <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+                <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+            </div>
+
+            <!-- Tips Panel -->
+            <div class="bg-amber-50/50 rounded-2xl p-4 border border-amber-200/50">
+                <h6 class="font-bold text-amber-800 text-sm mb-2.5 flex items-center gap-1.5"><i class="bi bi-lightbulb-fill"></i> Panduan Menulis Pengaduan:</h6>
+                <ul class="list-unstyled mb-0 text-xs text-slate-600 space-y-2.5">
+                    <li class="flex items-start gap-2.5">
+                        <span class="bg-amber-100 text-amber-800 rounded-full h-5 w-5 flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">1</span>
+                        <span>Berikan <strong>judul yang deskriptif</strong>, seperti menyertakan jenis kerusakan dan nama jalan.</span>
                     </li>
-                    <li class="d-flex gap-2 mb-3">
-                        <span class="badge bg-primary rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" style="width:22px;height:22px;font-size:.7rem;">2</span>
-                        <span class="text-muted">Tulis <strong>alamat lengkap</strong> dan tandai di peta.</span>
+                    <li class="flex items-start gap-2.5">
+                        <span class="bg-amber-100 text-amber-800 rounded-full h-5 w-5 flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">2</span>
+                        <span>Sesuaikan kategori agar dinas terkait dapat memproses laporan dengan lebih terarah.</span>
                     </li>
-                    <li class="d-flex gap-2 mb-3">
-                        <span class="badge bg-primary rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" style="width:22px;height:22px;font-size:.7rem;">3</span>
-                        <span class="text-muted">Deskripsikan <strong>kondisi kerusakan</strong> dan dampaknya.</span>
-                    </li>
-                    <li class="d-flex gap-2 mb-0">
-                        <span class="badge bg-primary rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center" style="width:22px;height:22px;font-size:.7rem;">4</span>
-                        <span class="text-muted">Upload <strong>hingga 5 foto</strong> untuk mempercepat validasi.</span>
+                    <li class="flex items-start gap-2.5">
+                        <span class="bg-amber-100 text-amber-800 rounded-full h-5 w-5 flex items-center justify-center font-extrabold text-[10px] flex-shrink-0 mt-0.5">3</span>
+                        <span>Klik peta di lokasi kerusakan secara akurat agar petugas mudah mendatangi lokasi.</span>
                     </li>
                 </ul>
             </div>
         </div>
     </div>
-</div>
+</form>
 @endsection
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // ── Peta ──
-    const map = L.map('map').setView([{{ old('latitude', -7.2575) }}, {{ old('longitude', 112.7521) }}], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+    // Leaflet map setup
+    const map = L.map('map').setView([{{ old('latitude', -7.1539) }}, {{ old('longitude', 112.6561) }}], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
     let marker = null;
+
     @if(old('latitude') && old('longitude'))
         marker = L.marker([{{ old('latitude') }}, {{ old('longitude') }}]).addTo(map);
-        updateCoords({{ old('latitude') }}, {{ old('longitude') }});
+        updateCoordsLabel({{ old('latitude') }}, {{ old('longitude') }});
     @endif
+
     map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
         if (marker) map.removeLayer(marker);
-        marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-        document.getElementById('latitude').value  = e.latlng.lat.toFixed(7);
-        document.getElementById('longitude').value = e.latlng.lng.toFixed(7);
-        updateCoords(e.latlng.lat, e.latlng.lng);
+        marker = L.marker([lat, lng]).addTo(map);
+        document.getElementById('latitude').value = lat.toFixed(7);
+        document.getElementById('longitude').value = lng.toFixed(7);
+        updateCoordsLabel(lat, lng);
     });
-    function updateCoords(lat, lng) {
+
+    function updateCoordsLabel(lat, lng) {
         document.getElementById('coordsLabel').innerHTML =
-            `<i class="bi bi-geo-alt-fill text-danger me-1"></i>Lat: ${parseFloat(lat).toFixed(5)}, Lng: ${parseFloat(lng).toFixed(5)}`;
+            `<i class="bi bi-geo-alt-fill text-rose-500 me-1"></i>Lat: ${parseFloat(lat).toFixed(5)}, Lng: ${parseFloat(lng).toFixed(5)}`;
     }
+
     function resetMap() {
-        if (marker) { map.removeLayer(marker); marker = null; }
-        document.getElementById('latitude').value = document.getElementById('longitude').value = '';
+        if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+        }
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
         document.getElementById('coordsLabel').innerHTML = '<i class="bi bi-geo-alt me-1"></i>Belum ada titik dipilih';
     }
 
-    // ── Multiple Photo Preview ──
+    // Multiple File Selection & Previews
     const MAX_PHOTOS = 5;
     let selectedFiles = [];
 
     const photoInput = document.getElementById('photoInput');
-    const dropArea   = document.getElementById('dropArea');
-    const previewGrid= document.getElementById('previewGrid');
+    const dropArea = document.getElementById('dropArea');
+    const previewGrid = document.getElementById('previewGrid');
     const photoCount = document.getElementById('photoCount');
 
     photoInput.addEventListener('change', () => addFiles(photoInput.files));
     dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
     dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
     dropArea.addEventListener('drop', e => {
-        e.preventDefault(); dropArea.classList.remove('dragover');
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
         addFiles(e.dataTransfer.files);
     });
 
@@ -228,7 +294,8 @@
 
     function removeFile(idx) {
         selectedFiles.splice(idx, 1);
-        syncInput(); renderPreviews();
+        syncInput();
+        renderPreviews();
     }
 
     function syncInput() {
@@ -256,13 +323,15 @@
         });
     }
 
-    // ── Char counter ──
+    // Character counter for description text
     const desc = document.querySelector('textarea[name="description"]');
     const counter = document.getElementById('charCount');
-    desc.addEventListener('input', () => {
-        counter.textContent = desc.value.length + ' karakter';
-        counter.style.color = desc.value.length < 20 ? '#ef4444' : '#64748b';
-    });
-    counter.textContent = desc.value.length + ' karakter';
+    function updateCharCount() {
+        const len = desc.value.length;
+        counter.textContent = len + ' karakter';
+        counter.style.color = len < 20 ? '#ef4444' : '#64748b';
+    }
+    desc.addEventListener('input', updateCharCount);
+    updateCharCount();
 </script>
 @endpush

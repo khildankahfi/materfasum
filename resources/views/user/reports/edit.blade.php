@@ -1,257 +1,265 @@
 @extends('layouts.user')
 
 @section('title', 'Edit Laporan')
-@section('page-title', 'Edit Laporan')
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('user.reports.index') }}">Laporan</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('user.reports.show', $report) }}">Detail</a></li>
-    <li class="breadcrumb-item active">Edit</li>
-@endsection
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
     #map {
-        height: 280px;
-        border-radius: 10px;
-        z-index: 0;
+        height: 380px;
+        border-radius: 16px;
+        z-index: 1;
         border: 1px solid #e2e8f0;
     }
     .photo-drop-area {
-        border: 2px dashed #e2e8f0;
-        border-radius: 10px;
-        padding: 1.5rem;
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
         text-align: center;
         cursor: pointer;
-        transition: border-color .2s, background .2s;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
     }
     .photo-drop-area:hover, .photo-drop-area.dragover {
         border-color: #2563eb;
-        background: #eff6ff;
+        background-color: #eff6ff;
     }
-    #photoPreview {
-        max-height: 200px;
-        border-radius: 8px;
+    .photo-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    .photo-thumb-wrap {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .photo-thumb-wrap img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
     }
-    .remove-photo-btn {
+    .photo-thumb-wrap .remove-btn {
         position: absolute;
-        top: 6px; right: 6px;
-        background: rgba(239,68,68,.9);
+        top: 4px;
+        right: 4px;
+        background: rgba(244, 63, 94, 0.9);
         border: none;
         border-radius: 50%;
-        width: 28px; height: 28px;
+        width: 22px;
+        height: 22px;
         color: #fff;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        font-size: .8rem;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
     }
-    .current-photo-wrap { position: relative; display: inline-block; }
+    .photo-thumb-wrap .remove-btn:hover {
+        transform: scale(1.1);
+    }
+    .current-photo-card {
+        transition: all 0.2s;
+    }
 </style>
 @endpush
 
 @section('content')
+<div class="mb-5">
+    <h4 class="font-extrabold text-2xl tracking-tight text-slate-800 mb-1">
+        Edit Pengaduan ✏️
+    </h4>
+    <p class="text-slate-500 font-medium text-sm">
+        Ubah rincian informasi laporan kerusakan fasilitas umum Anda.
+    </p>
+</div>
 
-<div class="row justify-content-center">
-    <div class="col-12 col-lg-8">
-        <div class="card">
-            <div class="card-header d-flex align-items-center justify-content-between">
-                <span><i class="bi bi-pencil-square me-2 text-primary"></i>Edit Laporan</span>
-                <span class="badge badge-menunggu px-2 py-1" style="font-size:.78rem;">Menunggu</span>
-            </div>
-            <div class="card-body">
+@if($errors->any())
+    <div class="alert alert-danger border-0 shadow-sm rounded-xl d-flex align-items-start gap-3 py-3 px-4 mb-4 bg-rose-50 text-rose-800" role="alert">
+        <div class="bg-rose-500 text-white rounded-full p-1 h-7 w-7 flex items-center justify-center mt-0.5 flex-shrink-0">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <div class="flex-grow-1 text-sm font-medium">
+            <strong class="block mb-1">Terjadi kesalahan input data:</strong>
+            <ul class="mb-0 ps-3 list-disc">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 
-                @if($errors->any())
-                    <div class="alert alert-danger mb-4" style="border-radius:10px;">
-                        <i class="bi bi-exclamation-circle-fill me-2"></i><strong>Terjadi kesalahan:</strong>
-                        <ul class="mb-0 mt-1 ps-3">
-                            @foreach($errors->all() as $error)
-                                <li style="font-size:.88rem;">{{ $error }}</li>
+<form action="{{ route('user.reports.update', $report) }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
+
+    <div class="row g-4">
+        <!-- Left Panel: Form fields -->
+        <div class="col-12 col-lg-7">
+            <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm space-y-4">
+                
+                <!-- Judul -->
+                <div>
+                    <label class="form-label text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Judul Laporan <span class="text-rose-500">*</span></label>
+                    <input type="text" name="title" class="form-control border-slate-200/80 text-sm focus:border-blue-500 focus:ring-0"
+                           placeholder="Contoh: Jalan berlubang lebar di simpang Gubeng"
+                           value="{{ old('title', $report->title) }}" style="border-radius:12px; padding: 0.7rem 0.9rem;">
+                </div>
+
+                <!-- Kategori & Lokasi -->
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kategori <span class="text-rose-500">*</span></label>
+                        <select name="category" class="form-select border-slate-200/80 text-sm focus:border-blue-500" style="border-radius:12px; padding: 0.7rem 0.9rem;">
+                            <option value="">Pilih Kategori</option>
+                            @foreach($categories as $key => $label)
+                                <option value="{{ $key }}" {{ old('category', $report->category) === $key ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
-                        </ul>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Alamat Lokasi <span class="text-rose-500">*</span></label>
+                        <input type="text" name="location" id="location"
+                               class="form-control border-slate-200/80 text-sm focus:border-blue-500"
+                               placeholder="Contoh: Jl. Raya Gubeng No. 12"
+                               value="{{ old('location', $report->location) }}" style="border-radius:12px; padding: 0.7rem 0.9rem;">
+                    </div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div>
+                    <label class="form-label text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Deskripsi Kerusakan <span class="text-rose-500">*</span></label>
+                    <textarea name="description" rows="5"
+                              class="form-control border-slate-200/80 text-sm focus:border-blue-500"
+                              placeholder="Jelaskan kondisi kerusakan secara lengkap dan dampaknya bagi warga sekitar (minimal 20 karakter)..."
+                              style="border-radius:12px; padding: 0.7rem 0.9rem;">{{ old('description', $report->description) }}</textarea>
+                    <div class="d-flex justify-content-end mt-1.5">
+                        <small class="text-slate-400 font-bold text-[10px]" id="charCount">0 karakter</small>
+                    </div>
+                </div>
+
+                <!-- Existing Photos (Deletion selector) -->
+                @if($report->photos->isNotEmpty())
+                    <div>
+                        <label class="form-label text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Foto Saat Ini <small class="text-rose-500 lowercase font-medium">(centang foto untuk menghapusnya)</small></label>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach($report->photos as $photo)
+                                <div class="position-relative current-photo-card rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center" style="width: 80px; height: 80px;">
+                                    <img src="{{ Storage::url($photo->path) }}" class="w-full h-full object-cover">
+                                    <div class="position-absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                        <div class="form-check m-0">
+                                            <input class="form-check-input remove-photo-cb cursor-pointer" type="checkbox" name="remove_photos[]" value="{{ $photo->id }}" id="photo-{{ $photo->id }}" style="width: 1.15rem; height: 1.15rem;">
+                                        </div>
+                                    </div>
+                                    <!-- Delete label indicator -->
+                                    <div class="position-absolute top-1 right-1 bg-rose-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[9px] font-bold remove-badge hidden" id="badge-{{ $photo->id }}">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 
-                <form action="{{ route('user.reports.update', $report) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
-
-                    {{-- Judul --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">
-                            Judul Laporan <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="title"
-                               class="form-control @error('title') is-invalid @enderror"
-                               placeholder="Contoh: Lampu Jalan Padam di Jl. Sudirman"
-                               value="{{ old('title', $report->title) }}" style="border-radius:10px;">
-                        @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    {{-- Kategori & Lokasi --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-600" style="font-size:.88rem;">
-                                Kategori <span class="text-danger">*</span>
-                            </label>
-                            <select name="category" class="form-select @error('category') is-invalid @enderror" style="border-radius:10px;">
-                                <option value="">Pilih Kategori</option>
-                                @foreach($categories as $key => $label)
-                                    <option value="{{ $key }}" {{ old('category', $report->category) === $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <!-- Upload Photo dropzone -->
+                <div>
+                    <label class="form-label text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Tambah Foto Baru <small class="text-slate-400 lowercase font-medium">(maksimal 5 foto secara keseluruhan)</small>
+                    </label>
+                    
+                    <div class="photo-drop-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
+                        <div class="bg-slate-200/60 text-slate-500 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-2.5">
+                            <i class="bi bi-plus-lg fs-5"></i>
                         </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-600" style="font-size:.88rem;">
-                                Lokasi <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" name="location" id="location"
-                                   class="form-control @error('location') is-invalid @enderror"
-                                   placeholder="Masukkan alamat lokasi"
-                                   value="{{ old('location', $report->location) }}" style="border-radius:10px;">
-                            @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
+                        <div class="font-bold text-slate-700 text-sm mb-1">Klik atau seret foto tambahan ke sini</div>
+                        <small class="text-slate-400 text-xs font-semibold">Mendukung format JPG, PNG, WEBP</small>
+                        <input type="file" id="photoInput" name="photos[]" accept="image/*"
+                               multiple style="display:none;">
                     </div>
-
-                    {{-- Peta --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">
-                            Tandai Lokasi di Peta
-                            <span class="text-muted fw-normal">(opsional, klik peta untuk mengubah)</span>
-                        </label>
-                        <div id="map" class="mb-2"></div>
-                        <div class="d-flex align-items-center gap-3">
-                            <small class="text-muted" id="coordsLabel">
-                                @if($report->latitude && $report->longitude)
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                                    Lat: {{ number_format($report->latitude, 5) }}, Lng: {{ number_format($report->longitude, 5) }}
-                                @else
-                                    <i class="bi bi-geo-alt me-1"></i>Belum ada titik dipilih
-                                @endif
-                            </small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto"
-                                    style="border-radius:8px;font-size:.78rem;" onclick="resetMap()">
-                                <i class="bi bi-x-circle me-1"></i>Reset Pin
-                            </button>
-                        </div>
-                        <input type="hidden" name="latitude"  id="latitude"  value="{{ old('latitude', $report->latitude) }}">
-                        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $report->longitude) }}">
+                    
+                    <div class="photo-preview-grid" id="previewGrid"></div>
+                    
+                    <div class="d-flex justify-content-end mt-2">
+                        <small class="text-slate-400 font-bold text-[10px]" id="photoCount">0 foto baru dipilih</small>
                     </div>
+                </div>
 
-                    {{-- Deskripsi --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">
-                            Deskripsi Kerusakan <span class="text-danger">*</span>
-                        </label>
-                        <textarea name="description" rows="5"
-                                  class="form-control @error('description') is-invalid @enderror"
-                                  placeholder="Jelaskan kerusakan secara detail (minimal 20 karakter)"
-                                  style="border-radius:10px;">{{ old('description', $report->description) }}</textarea>
-                        <div class="d-flex justify-content-end mt-1">
-                            <small class="text-muted" id="charCount">0 karakter</small>
-                        </div>
-                        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                <!-- Actions buttons -->
+                <div class="d-flex gap-3 pt-3">
+                    <button type="submit" class="btn btn-primary shadow-lg shadow-blue-500/20 px-4 py-2.5 rounded-xl text-sm font-semibold hover-lift">
+                        <i class="bi bi-check-lg me-1.5"></i>Simpan Perubahan
+                    </button>
+                    <a href="{{ route('user.reports.show', $report) }}" class="btn btn-light border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover-lift">
+                        Batal
+                    </a>
+                </div>
 
-                    {{-- Foto --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-600" style="font-size:.88rem;">
-                            Foto Kerusakan <small class="text-muted fw-normal">(opsional, maks. 5MB)</small>
-                        </label>
-
-                        @if($report->photo && !old('remove_photo'))
-                            {{-- Foto saat ini --}}
-                            <div class="mb-3 p-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;">
-                                <div class="text-muted mb-2" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Foto Saat Ini</div>
-                                <div class="current-photo-wrap">
-                                    <img src="{{ Storage::url($report->photo) }}" alt="Foto saat ini"
-                                         class="rounded" style="max-height:160px;cursor:pointer;border-radius:8px!important;"
-                                         onclick="window.open(this.src,'_blank')">
-                                </div>
-                                <div class="mt-2">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="remove_photo" value="1" id="removePhoto"
-                                               class="form-check-input" onchange="toggleRemovePhoto(this)">
-                                        <label class="form-check-label text-danger" for="removePhoto" style="font-size:.85rem;">
-                                            Hapus foto ini
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-muted mb-2" style="font-size:.83rem;">
-                                <i class="bi bi-arrow-repeat me-1"></i>Upload foto baru untuk mengganti (opsional):
-                            </div>
-                        @endif
-
-                        <div class="photo-drop-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
-                            <div id="previewWrapper" class="position-relative d-inline-block" style="display:none;">
-                                <img id="photoPreview" src="" alt="Preview" class="d-block mx-auto">
-                                <button type="button" class="remove-photo-btn" onclick="removeNewPhoto(event)">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                            <div id="uploadPlaceholder">
-                                <i class="bi bi-cloud-upload fs-2 text-muted d-block mb-1"></i>
-                                <div class="fw-500" style="font-size:.88rem;">Klik atau seret foto ke sini</div>
-                                <small class="text-muted">JPG, PNG, WEBP — maks. 5MB</small>
-                            </div>
-                            <input type="file" id="photoInput" name="photo" accept="image/*"
-                                   class="@error('photo') is-invalid @enderror" style="display:none;">
-                        </div>
-                        @error('photo')<div class="text-danger mt-1" style="font-size:.83rem;">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="d-flex gap-3 pt-2">
-                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600;">
-                            <i class="bi bi-check-lg me-2"></i>Simpan Perubahan
-                        </button>
-                        <a href="{{ route('user.reports.show', $report) }}" class="btn btn-outline-secondary" style="border-radius:10px;">
-                            Batal
-                        </a>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
 
-    {{-- Info --}}
-    <div class="col-12 col-lg-4">
-        <div class="card border-warning">
-            <div class="card-header text-warning" style="background:#fffbeb;">
-                <i class="bi bi-exclamation-triangle me-2"></i>Perhatian
+        <!-- Right Panel: Map Selection & Status Warnings -->
+        <div class="col-12 col-lg-5">
+            <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4 space-y-4">
+                <div>
+                    <h6 class="font-bold text-slate-800 mb-1">Sesuaikan Lokasi di Peta</h6>
+                    <p class="text-[11px] text-slate-400 font-semibold mb-0 uppercase tracking-wider">Geser atau klik peta untuk memperbarui titik koordinat penanganan</p>
+                </div>
+
+                <div id="map" class="mb-2"></div>
+
+                <div class="d-flex align-items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <small class="text-slate-600 font-semibold text-xs leading-none" id="coordsLabel">
+                        @if($report->latitude && $report->longitude)
+                            <i class="bi bi-geo-alt-fill text-rose-500 me-1"></i>Lat: {{ number_format($report->latitude, 5) }}, Lng: {{ number_format($report->longitude, 5) }}
+                        @else
+                            <i class="bi bi-geo-alt me-1 text-slate-400"></i>Belum ada titik dipilih
+                        @endif
+                    </small>
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1.5 rounded-lg text-[10px] font-bold" onclick="resetMap()">
+                        <i class="bi bi-trash me-1"></i>Hapus Pin
+                    </button>
+                </div>
+                
+                <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $report->latitude) }}">
+                <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $report->longitude) }}">
             </div>
-            <div class="card-body" style="font-size:.85rem;">
-                <ul class="list-unstyled mb-0">
-                    <li class="d-flex gap-2 mb-2">
-                        <i class="bi bi-check-circle-fill text-success mt-1 flex-shrink-0"></i>
-                        <span class="text-muted">Laporan hanya bisa diedit selama berstatus <strong>Menunggu</strong>.</span>
+
+            <!-- Caution Panel -->
+            <div class="bg-rose-50/50 rounded-2xl p-4 border border-rose-200/50">
+                <h6 class="font-bold text-rose-800 text-sm mb-2.5"><i class="bi bi-exclamation-octagon me-2"></i>Aturan Perubahan Aduan</h6>
+                <ul class="list-unstyled mb-0 text-xs text-slate-600 space-y-2.5">
+                    <li class="flex items-start gap-2.5">
+                        <i class="bi bi-check-circle-fill text-rose-500 flex-shrink-0 mt-0.5"></i>
+                        <span>Pengaduan hanya bisa diubah selama berstatus <strong>Menunggu Validasi</strong>.</span>
                     </li>
-                    <li class="d-flex gap-2 mb-2">
-                        <i class="bi bi-check-circle-fill text-success mt-1 flex-shrink-0"></i>
-                        <span class="text-muted">Setelah admin mulai memproses, laporan tidak bisa diubah lagi.</span>
-                    </li>
-                    <li class="d-flex gap-2">
-                        <i class="bi bi-check-circle-fill text-success mt-1 flex-shrink-0"></i>
-                        <span class="text-muted">Pastikan semua informasi sudah benar sebelum menyimpan.</span>
+                    <li class="flex items-start gap-2.5">
+                        <i class="bi bi-check-circle-fill text-rose-500 flex-shrink-0 mt-0.5"></i>
+                        <span>Jika petugas atau admin sudah memvalidasi/memproses aduan ini, tombol simpan akan dikunci otomatis.</span>
                     </li>
                 </ul>
             </div>
         </div>
     </div>
-</div>
+</form>
 @endsection
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // ── Leaflet Map ──
-    const initLat = {{ old('latitude', $report->latitude ?? -7.2575) }};
-    const initLng = {{ old('longitude', $report->longitude ?? 112.7521) }};
+    // Map Configuration
+    const initLat = {{ old('latitude', $report->latitude ?? -7.1539) }};
+    const initLng = {{ old('longitude', $report->longitude ?? 112.6561) }};
     const hasPin  = {{ ($report->latitude && $report->longitude) ? 'true' : 'false' }};
 
     const map = L.map('map').setView([initLat, initLng], hasPin ? 15 : 13);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -266,79 +274,114 @@
         const { lat, lng } = e.latlng;
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lng]).addTo(map);
-        document.getElementById('latitude').value  = lat.toFixed(7);
+        document.getElementById('latitude').value = lat.toFixed(7);
         document.getElementById('longitude').value = lng.toFixed(7);
         updateCoordsLabel(lat, lng);
     });
 
     function updateCoordsLabel(lat, lng) {
         document.getElementById('coordsLabel').innerHTML =
-            `<i class="bi bi-geo-alt-fill text-danger me-1"></i>Lat: ${parseFloat(lat).toFixed(5)}, Lng: ${parseFloat(lng).toFixed(5)}`;
+            `<i class="bi bi-geo-alt-fill text-rose-500 me-1"></i>Lat: ${parseFloat(lat).toFixed(5)}, Lng: ${parseFloat(lng).toFixed(5)}`;
     }
 
     function resetMap() {
-        if (marker) { map.removeLayer(marker); marker = null; }
-        document.getElementById('latitude').value  = '';
+        if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+        }
+        document.getElementById('latitude').value = '';
         document.getElementById('longitude').value = '';
-        document.getElementById('coordsLabel').innerHTML =
-            '<i class="bi bi-geo-alt me-1"></i>Belum ada titik dipilih';
+        document.getElementById('coordsLabel').innerHTML = '<i class="bi bi-geo-alt me-1"></i>Belum ada titik dipilih';
     }
 
-    // ── Photo Preview ──
-    const photoInput  = document.getElementById('photoInput');
-    const previewWrap = document.getElementById('previewWrapper');
-    const placeholder = document.getElementById('uploadPlaceholder');
-    const preview     = document.getElementById('photoPreview');
-    const dropArea    = document.getElementById('dropArea');
+    // Existing Photos Deletion visual toggle
+    document.querySelectorAll('.remove-photo-cb').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const id = this.value;
+            const badge = document.getElementById(`badge-${id}`);
+            const card = this.closest('.current-photo-card');
+            if (this.checked) {
+                badge.classList.remove('hidden');
+                card.style.borderColor = '#f43f5e';
+                card.style.opacity = '0.5';
+            } else {
+                badge.classList.add('hidden');
+                card.style.borderColor = '#e2e8f0';
+                card.style.opacity = '1';
+            }
+        });
+    });
 
-    photoInput.addEventListener('change', function() { showPreview(this.files[0]); });
+    // File Dropzone for New Photos
+    const MAX_PHOTOS = 5;
+    const existingPhotosCount = {{ $report->photos->count() }};
+    let selectedFiles = [];
 
+    const photoInput = document.getElementById('photoInput');
+    const dropArea = document.getElementById('dropArea');
+    const previewGrid = document.getElementById('previewGrid');
+    const photoCount = document.getElementById('photoCount');
+
+    photoInput.addEventListener('change', () => addFiles(photoInput.files));
     dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
     dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
     dropArea.addEventListener('drop', e => {
         e.preventDefault();
         dropArea.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            photoInput.files = dt.files;
-            showPreview(file);
-        }
+        addFiles(e.dataTransfer.files);
     });
 
-    function showPreview(file) {
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            preview.src = e.target.result;
-            previewWrap.style.display = 'inline-block';
-            placeholder.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+    function addFiles(fileList) {
+        const allowedNewCount = MAX_PHOTOS - existingPhotosCount;
+        Array.from(fileList).forEach(f => {
+            if (selectedFiles.length >= allowedNewCount) return;
+            if (!f.type.startsWith('image/')) return;
+            selectedFiles.push(f);
+        });
+        syncInput();
+        renderPreviews();
     }
 
-    function removeNewPhoto(e) {
-        e.stopPropagation();
-        photoInput.value = '';
-        previewWrap.style.display = 'none';
-        placeholder.style.display = 'block';
+    function removeFile(idx) {
+        selectedFiles.splice(idx, 1);
+        syncInput();
+        renderPreviews();
     }
 
-    function toggleRemovePhoto(cb) {
-        dropArea.style.opacity = cb.checked ? '0.4' : '1';
-        dropArea.style.pointerEvents = cb.checked ? 'none' : 'auto';
+    function syncInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(f => dt.items.add(f));
+        photoInput.files = dt.files;
+        photoCount.textContent = `${selectedFiles.length} foto baru dipilih`;
     }
 
-    // ── Char counter ──
-    const desc    = document.querySelector('textarea[name="description"]');
+    function renderPreviews() {
+        previewGrid.innerHTML = '';
+        selectedFiles.forEach((f, i) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const wrap = document.createElement('div');
+                wrap.className = 'photo-thumb-wrap';
+                wrap.innerHTML = `
+                    <img src="${e.target.result}" alt="preview">
+                    <button type="button" class="remove-btn" onclick="removeFile(${i})">
+                        <i class="bi bi-x"></i>
+                    </button>`;
+                previewGrid.appendChild(wrap);
+            };
+            reader.readAsDataURL(f);
+        });
+    }
+
+    // Char count for description
+    const desc = document.querySelector('textarea[name="description"]');
     const counter = document.getElementById('charCount');
-    function updateCounter() {
+    function updateCharCount() {
         const len = desc.value.length;
         counter.textContent = len + ' karakter';
         counter.style.color = len < 20 ? '#ef4444' : '#64748b';
     }
-    desc.addEventListener('input', updateCounter);
-    updateCounter();
+    desc.addEventListener('input', updateCharCount);
+    updateCharCount();
 </script>
 @endpush

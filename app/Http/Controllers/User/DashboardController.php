@@ -25,8 +25,13 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $recentRepairs = Report::whereIn('status', ['diproses', 'selesai'])
+            ->latest()
+            ->take(3)
+            ->get();
+
         $unreadNotifications = $user->unreadNotifications()->take(5)->get();
 
-        return view('user.dashboard', compact('stats', 'latestReports', 'unreadNotifications'));
+        return view('user.dashboard', compact('stats', 'latestReports', 'unreadNotifications', 'recentRepairs'));
     }
 }
