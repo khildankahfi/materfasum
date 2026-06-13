@@ -1,224 +1,188 @@
 @extends('layouts.user')
 
-@section('title', 'Dashboard Warga')
+@section('title', 'Beranda')
 
 @section('content')
 
-{{-- Greeting & Role Badge --}}
-<div class="d-flex flex-column sm:flex-row align-items-start sm:align-items-center justify-content-between gap-3 mb-4">
-    <div>
-        <h4 class="font-extrabold text-slate-800 mb-1">Halo, {{ auth()->user()->name }}! 👋</h4>
-        <p class="text-slate-500 font-semibold text-xs mb-0">Selamat datang kembali. Mari bersama-sama ikut memantau dan memelihara fasilitas umum di Gresik.</p>
-    </div>
-    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-600 text-[10px] font-bold uppercase tracking-wider">
-        <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Warga Aktif
-    </span>
-</div>
-
-{{-- Workflow Banner / Guide --}}
-<div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-3xl p-4 sm:p-4.5 mb-4 shadow-md shadow-blue-500/10 position-relative overflow-hidden">
-    <div class="absolute -right-10 -bottom-10 text-white/5 font-bold text-9xl select-none pointer-events-none">
-        <i class="bi bi-info-circle-fill"></i>
-    </div>
-    
-    <div class="position-relative z-1">
-        <h6 class="font-bold text-sm mb-2.5 flex items-center gap-2"><i class="bi bi-shield-shaded"></i> Alur Kerja Penanganan Aduan Anda:</h6>
-        
-        <div class="row g-3 text-center text-sm">
-            <div class="col-6 col-md-3">
-                <div class="p-2.5 bg-white/10 rounded-2xl h-100">
-                    <div class="font-extrabold text-sm mb-0.5"><i class="bi bi-pencil-square me-1"></i> 1. Laporkan</div>
-                    <span class="text-[10px] opacity-75 font-medium leading-tight block">Kirim aduan berupa foto, deskripsi, & titik peta GIS</span>
-                </div>
-            </div>
-            
-            <div class="col-6 col-md-3">
-                <div class="p-2.5 bg-white/10 rounded-2xl h-100">
-                    <div class="font-extrabold text-sm mb-0.5"><i class="bi bi-shield-check me-1"></i> 2. Validasi</div>
-                    <span class="text-[10px] opacity-75 font-medium leading-tight block">Admin memvalidasi & mengarahkan ke dinas terkait</span>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="p-2.5 bg-white/10 rounded-2xl h-100">
-                    <div class="font-extrabold text-sm mb-0.5"><i class="bi bi-tools me-1"></i> 3. Diperbaiki</div>
-                    <span class="text-[10px] opacity-75 font-medium leading-tight block">Petugas dinas diterjunkan langsung ke lokasi keluhan</span>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="p-2.5 bg-white/10 rounded-2xl h-100">
-                    <div class="font-extrabold text-sm mb-0.5"><i class="bi bi-check-circle me-1"></i> 4. Selesai</div>
-                    <span class="text-[10px] opacity-75 font-medium leading-tight block">Aduan tuntas diperbaiki & Anda menerima notifikasi</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Stats Row --}}
-<div class="row g-3 mb-4">
-    <!-- Stat 1: Total -->
-    <div class="col-6 col-lg-3 animate-fade-in">
-        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl p-4 relative overflow-hidden shadow-sm shadow-blue-500/10 hover:scale-[1.02] transition-transform duration-300">
-            <div class="font-extrabold text-3xl leading-none mb-1">{{ $stats['total'] }}</div>
-            <div class="text-[10px] uppercase font-bold tracking-wider opacity-85">Total Laporan</div>
-            <div class="absolute -right-3 -bottom-3 text-white/10 font-bold text-6xl leading-none select-none pointer-events-none">
-                <i class="bi bi-file-earmark-text"></i>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Stat 2: Menunggu -->
-    <div class="col-6 col-lg-3 animate-fade-in">
-        <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-4 relative overflow-hidden shadow-sm shadow-amber-500/10 hover:scale-[1.02] transition-transform duration-300">
-            <div class="font-extrabold text-3xl leading-none mb-1">{{ $stats['menunggu'] }}</div>
-            <div class="text-[10px] uppercase font-bold tracking-wider opacity-85">Menunggu Validasi</div>
-            <div class="absolute -right-3 -bottom-3 text-white/10 font-bold text-6xl leading-none select-none pointer-events-none">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stat 3: Diproses -->
-    <div class="col-6 col-lg-3 animate-fade-in">
-        <div class="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-2xl p-4 relative overflow-hidden shadow-sm shadow-sky-500/10 hover:scale-[1.02] transition-transform duration-300">
-            <div class="font-extrabold text-3xl leading-none mb-1">{{ $stats['diproses'] }}</div>
-            <div class="text-[10px] uppercase font-bold tracking-wider opacity-85">Sedang Diproses</div>
-            <div class="absolute -right-3 -bottom-3 text-white/10 font-bold text-6xl leading-none select-none pointer-events-none">
-                <i class="bi bi-gear-wide-connected"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stat 4: Selesai -->
-    <div class="col-6 col-lg-3 animate-fade-in">
-        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-2xl p-4 relative overflow-hidden shadow-sm shadow-emerald-500/10 hover:scale-[1.02] transition-transform duration-300">
-            <div class="font-extrabold text-3xl leading-none mb-1">{{ $stats['selesai'] }}</div>
-            <div class="text-[10px] uppercase font-bold tracking-wider opacity-85">Selesai Diperbaiki</div>
-            <div class="absolute -right-3 -bottom-3 text-white/10 font-bold text-6xl leading-none select-none pointer-events-none">
-                <i class="bi bi-check-circle-fill"></i>
-            </div>
-        </div>
-    </div>
+{{-- Welcome Header --}}
+<div class="mb-5">
+    <h4 style="font-size:1.5rem;font-weight:700;color:#111827;margin-bottom:.35rem;">
+        Selamat Datang Kembali, {{ explode(' ', auth()->user()->name)[0] }}! 👋
+    </h4>
+    <p style="color:#6b7280;font-size:.9rem;margin:0;">
+        Pilih kategori fasilitas umum di bawah ini untuk memulai pengaduan cepat.
+    </p>
 </div>
 
 <div class="row g-4">
-    <!-- Left Column: Laporan Terbaru Saya -->
-    <div class="col-12 col-lg-8">
-        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm h-full">
-            <div class="d-flex align-items-center justify-content-between mb-4">
-                <div>
-                    <h5 class="font-bold text-slate-800 mb-1">Laporan Terbaru Saya</h5>
-                    <p class="text-xs text-slate-400 font-semibold mb-0 uppercase tracking-wider">Status aduan terakhir yang Anda laporkan</p>
+
+    {{-- Left Column: Category Cards --}}
+    <div class="col-12 col-lg-7">
+
+        <h6 style="font-weight:600;color:#374151;margin-bottom:1rem;font-size:.95rem;">Pilih Kategori Fasilitas</h6>
+
+        <div class="row g-3">
+
+            {{-- Jalan & Jembatan --}}
+            <div class="col-6">
+                <div class="card p-4 h-100" style="transition:border-color .15s,box-shadow .15s;cursor:pointer;"
+                     onmouseenter="this.style.borderColor='#93c5fd';this.style.boxShadow='0 2px 8px rgba(37,99,235,.06)'"
+                     onmouseleave="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                    <div style="font-size:1.3rem;margin-bottom:.6rem;">🛣️ Jalan & Jembatan</div>
+                    <div style="font-size:.8rem;color:#6b7280;margin-bottom:1rem;line-height:1.6;">
+                        Aspal ambles<br>lubang jalan
+                    </div>
+                    <a href="{{ route('user.reports.create', ['category' => 'jalan_jembatan']) }}"
+                       style="color:#2563eb;font-size:.83rem;font-weight:500;text-decoration:none;">
+                        Laporkan →
+                    </a>
                 </div>
-                <a href="{{ route('user.reports.index') }}" class="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg text-xs font-bold text-decoration-none">
-                    Lihat Semua
-                </a>
             </div>
 
-            <div class="divide-y divide-slate-100">
-                @forelse($latestReports as $report)
-                    <div class="flex items-start gap-4 py-3.5 first:pt-0 last:pb-0">
-                        <div class="rounded-xl h-10 w-10 bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                            @if($report->category === 'jalan')
-                                <i class="bi bi-cone-striped fs-5"></i>
-                            @elseif($report->category === 'lampu')
-                                <i class="bi bi-lightbulb fs-5"></i>
-                            @elseif($report->category === 'taman')
-                                <i class="bi bi-tree fs-5"></i>
-                            @elseif($report->category === 'drainase')
-                                <i class="bi bi-droplet fs-5"></i>
-                            @else
-                                <i class="bi bi-file-earmark-text fs-5"></i>
-                            @endif
-                        </div>
-                        <div class="flex-grow min-w-0">
-                            <div class="flex items-start justify-between gap-3 mb-1">
-                                <a href="{{ route('user.reports.show', $report) }}" class="font-bold text-sm text-slate-800 text-decoration-none hover:text-blue-600 truncate">
-                                    {{ $report->title }}
-                                </a>
-                                <span class="status-badge status-{{ $report->status }} flex-shrink-0">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
-                                    {{ $report->status_label }}
-                                </span>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-medium">
-                                <span class="flex items-center gap-1">
-                                    <i class="bi bi-geo-alt text-slate-300"></i>{{ Str::limit($report->location, 45) }}
-                                </span>
-                                <span>•</span>
-                                <span class="flex items-center gap-1">
-                                    <i class="bi bi-calendar3 text-slate-300"></i>{{ $report->created_at->diffForHumans() }}
-                                </span>
-                            </div>
-                        </div>
+            {{-- Penerangan Jalan --}}
+            <div class="col-6">
+                <div class="card p-4 h-100" style="transition:border-color .15s,box-shadow .15s;cursor:pointer;"
+                     onmouseenter="this.style.borderColor='#93c5fd';this.style.boxShadow='0 2px 8px rgba(37,99,235,.06)'"
+                     onmouseleave="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                    <div style="font-size:1.3rem;margin-bottom:.6rem;">💡 Penerangan Jalan (PJU)</div>
+                    <div style="font-size:.8rem;color:#6b7280;margin-bottom:1rem;line-height:1.6;">
+                        Lampu jalan mati<br>kabel menjuntai
                     </div>
-                @empty
-                    <div class="text-center py-12 text-slate-400">
-                        <i class="bi bi-inbox fs-1 d-block mb-2 text-slate-300"></i>
-                        <p class="mb-3 text-sm font-semibold">Belum ada aduan laporan yang Anda kirimkan.</p>
-                        <a href="{{ route('user.reports.create') }}" class="btn btn-sm btn-outline-primary rounded-lg text-xs font-bold px-3 py-2">
-                            <i class="bi bi-plus-circle me-1"></i>Buat Laporan Pertama
-                        </a>
-                    </div>
-                @endforelse
+                    <a href="{{ route('user.reports.create', ['category' => 'penerangan_jalan']) }}"
+                       style="color:#2563eb;font-size:.83rem;font-weight:500;text-decoration:none;">
+                        Laporkan →
+                    </a>
+                </div>
             </div>
+
+            {{-- Taman & Fasum --}}
+            <div class="col-6">
+                <div class="card p-4 h-100" style="transition:border-color .15s,box-shadow .15s;cursor:pointer;"
+                     onmouseenter="this.style.borderColor='#93c5fd';this.style.boxShadow='0 2px 8px rgba(37,99,235,.06)'"
+                     onmouseleave="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                    <div style="font-size:1.3rem;margin-bottom:.6rem;">🌳 Taman & Fasum</div>
+                    <div style="font-size:.8rem;color:#6b7280;margin-bottom:1rem;line-height:1.6;">
+                        Fasilitas taman rusak<br>pohon rawan tumbang
+                    </div>
+                    <a href="{{ route('user.reports.create', ['category' => 'taman']) }}"
+                       style="color:#2563eb;font-size:.83rem;font-weight:500;text-decoration:none;">
+                        Laporkan →
+                    </a>
+                </div>
+            </div>
+
+            {{-- Saluran Air --}}
+            <div class="col-6">
+                <div class="card p-4 h-100" style="transition:border-color .15s,box-shadow .15s;cursor:pointer;"
+                     onmouseenter="this.style.borderColor='#93c5fd';this.style.boxShadow='0 2px 8px rgba(37,99,235,.06)'"
+                     onmouseleave="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                    <div style="font-size:1.3rem;margin-bottom:.6rem;">💧 Saluran Air / Drainase</div>
+                    <div style="font-size:.8rem;color:#6b7280;margin-bottom:1rem;line-height:1.6;">
+                        Got tersumbat<br>banjir
+                    </div>
+                    <a href="{{ route('user.reports.create', ['category' => 'drainase']) }}"
+                       style="color:#2563eb;font-size:.83rem;font-weight:500;text-decoration:none;">
+                        Laporkan →
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- Right Column: Notifikasi & Aksi Cepat -->
-    <div class="col-12 col-lg-4 space-y-4">
-        
-        <!-- Notifikasi Terbaru Widget -->
-        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm">
-            <div class="d-flex align-items-center justify-content-between mb-4">
-                <div>
-                    <h5 class="font-bold text-slate-800 mb-1">Notifikasi Terbaru</h5>
-                    <p class="text-xs text-slate-400 font-semibold mb-0 uppercase tracking-wider">Pemberitahuan sistem aduan</p>
-                </div>
-                <a href="{{ route('user.notifications.index') }}" class="px-2.5 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg text-[10px] font-bold text-decoration-none uppercase tracking-wider">Semua</a>
-            </div>
+    {{-- Right Column: Stats + Recent --}}
+    <div class="col-12 col-lg-5">
 
-            <div class="space-y-3">
-                @forelse($unreadNotifications as $notif)
-                    <div class="p-3 bg-amber-50/45 border border-amber-100/40 rounded-xl flex items-start gap-2.5">
-                        <i class="bi bi-bell-fill text-amber-500 flex-shrink-0 mt-0.5" style="font-size: 0.85rem;"></i>
-                        <div class="min-w-0 flex-grow">
-                            <p class="text-slate-700 text-xs font-semibold leading-normal mb-1">
-                                {{ $notif->data['message'] ?? '-' }}
-                            </p>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                                {{ $notif->created_at->diffForHumans() }}
-                            </span>
-                        </div>
-                    </div>
-                @empty
-                    <div class="text-center py-6 text-slate-400">
-                        <i class="bi bi-bell-slash fs-3 d-block mb-1.5 text-slate-300"></i>
-                        <p class="mb-0 text-xs font-semibold">Tidak ada pemberitahuan baru.</p>
-                    </div>
-                @endforelse
+        {{-- Ringkasan Laporan --}}
+        <div class="card p-4 mb-3">
+            <h6 style="font-weight:600;color:#111827;margin-bottom:1rem;font-size:.95rem;">Ringkasan Laporan Saya</h6>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <span style="color:#374151;font-size:.875rem;">
+                    <strong style="font-size:1rem;">{{ $totalReports }}</strong> Total Aduan
+                </span>
+                <div class="d-flex flex-column align-items-end gap-1" style="font-size:.82rem;">
+                    @if($inProgressReports > 0)
+                        <a href="{{ route('user.reports.index', ['status' => 'diproses']) }}"
+                           style="color:#2563eb;text-decoration:none;font-weight:500;">
+                            {{ $inProgressReports }} Sedang Diproses
+                        </a>
+                    @endif
+                    @if($completedReports > 0)
+                        <a href="{{ route('user.reports.index', ['status' => 'selesai']) }}"
+                           style="color:#2563eb;text-decoration:none;font-weight:500;">
+                            {{ $completedReports }} Selesai Diperbaiki
+                        </a>
+                    @endif
+                    @if($pendingReports > 0)
+                        <a href="{{ route('user.reports.index', ['status' => 'menunggu']) }}"
+                           style="color:#d97706;text-decoration:none;font-weight:500;">
+                            {{ $pendingReports }} Menunggu
+                        </a>
+                    @endif
+                    @if($totalReports === 0)
+                        <span style="color:#9ca3af;">Belum ada laporan</span>
+                    @endif
+                </div>
             </div>
         </div>
 
-        <!-- Aksi Cepat Widget -->
-        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm">
-            <div class="mb-4">
-                <h5 class="font-bold text-slate-800 mb-1">Aksi Cepat</h5>
-                <p class="text-xs text-slate-400 font-semibold mb-0 uppercase tracking-wider">Pintasan menu cepat aduan</p>
-            </div>
-            
-            <div class="d-grid gap-2.5">
-                <a href="{{ route('user.reports.create') }}" class="btn btn-primary py-2.5 px-4 rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 text-decoration-none hover-lift flex items-center justify-center gap-2">
-                    <i class="bi bi-plus-circle-fill"></i> Buat Laporan Baru
-                </a>
-                <a href="{{ route('user.reports.index') }}" class="btn btn-light border border-slate-200 text-slate-600 py-2.5 px-4 rounded-xl text-xs font-bold text-decoration-none hover-lift flex items-center justify-center gap-2">
-                    <i class="bi bi-list-ul"></i> Lihat Semua Laporan
-                </a>
-            </div>
+        {{-- Perbaikan Terbaru --}}
+        <div class="card p-4">
+            <h6 style="font-weight:600;color:#111827;margin-bottom:1rem;font-size:.95rem;">Perbaikan Terbaru di Sekitarmu</h6>
+
+            @if($recentActivity->isEmpty())
+                <div style="text-align:center;padding:1.5rem 0;color:#9ca3af;font-size:.85rem;">
+                    <i class="bi bi-inbox d-block mb-2" style="font-size:1.5rem;"></i>
+                    Belum ada aktivitas terbaru
+                </div>
+            @else
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    @foreach($recentActivity as $report)
+                        <a href="{{ route('user.reports.show', $report) }}" style="text-decoration:none;color:inherit;">
+                            <div style="display:flex;flex-direction:column;gap:.3rem;padding:.5rem;border-radius:8px;transition:background .15s;"
+                                 onmouseenter="this.style.background='#f9fafb'"
+                                 onmouseleave="this.style.background='transparent'">
+                                <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+                                    {{-- Status badge --}}
+                                    @if($report->status === 'selesai')
+                                        <span style="display:inline-flex;align-items:center;gap:4px;padding:.2em .6em;border-radius:4px;background:#d1fae5;color:#059669;font-size:.72rem;font-weight:600;">
+                                            ✓ SELESAI
+                                        </span>
+                                    @elseif($report->status === 'diproses')
+                                        <span style="display:inline-flex;align-items:center;gap:4px;padding:.2em .6em;border-radius:4px;background:#dbeafe;color:#2563eb;font-size:.72rem;font-weight:600;">
+                                            ⟳ PROSES
+                                        </span>
+                                    @elseif($report->status === 'menunggu')
+                                        <span style="display:inline-flex;align-items:center;gap:4px;padding:.2em .6em;border-radius:4px;background:#fef3c7;color:#d97706;font-size:.72rem;font-weight:600;">
+                                            ◷ MENUNGGU
+                                        </span>
+                                    @else
+                                        <span style="display:inline-flex;align-items:center;gap:4px;padding:.2em .6em;border-radius:4px;background:#fee2e2;color:#dc2626;font-size:.72rem;font-weight:600;">
+                                            ✕ DITOLAK
+                                        </span>
+                                    @endif
+                                    <span style="color:#9ca3af;font-size:.78rem;">{{ $report->updated_at->diffForHumans() }}</span>
+                                </div>
+                                <div style="font-size:.85rem;color:#374151;font-weight:500;">
+                                    {{ $report->title }}
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+
+                @if($totalReports > 3)
+                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #f3f4f6;">
+                        <a href="{{ route('user.reports.index') }}"
+                           style="color:#2563eb;font-size:.83rem;font-weight:500;text-decoration:none;">
+                            Lihat semua laporan →
+                        </a>
+                    </div>
+                @endif
+            @endif
         </div>
 
     </div>
 </div>
+
 @endsection

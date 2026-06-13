@@ -38,6 +38,17 @@ class ReportController extends Controller
         return view('admin.reports.index', compact('reports', 'categories'));
     }
 
+    public function map()
+    {
+        $reports = Report::select('id', 'title', 'latitude', 'longitude', 'status', 'location', 'category')->get();
+        foreach ($reports as $report) {
+            $report->url = route('admin.reports.show', $report);
+            $report->status_label = $report->status_label;
+        }
+        $categories = Report::categories();
+        return view('admin.reports.map', compact('reports', 'categories'));
+    }
+
     public function show(Report $report)
     {
         $report->load('user', 'updates.admin', 'photos');

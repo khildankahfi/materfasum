@@ -12,26 +12,25 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $stats = [
-            'total'    => Report::where('user_id', $user->id)->count(),
-            'menunggu' => Report::where('user_id', $user->id)->where('status', 'menunggu')->count(),
-            'diproses' => Report::where('user_id', $user->id)->where('status', 'diproses')->count(),
-            'selesai'  => Report::where('user_id', $user->id)->where('status', 'selesai')->count(),
-            'ditolak'  => Report::where('user_id', $user->id)->where('status', 'ditolak')->count(),
-        ];
+        $totalReports     = Report::where('user_id', $user->id)->count();
+        $pendingReports   = Report::where('user_id', $user->id)->where('status', 'menunggu')->count();
+        $inProgressReports = Report::where('user_id', $user->id)->where('status', 'diproses')->count();
+        $completedReports = Report::where('user_id', $user->id)->where('status', 'selesai')->count();
+        $rejectedReports  = Report::where('user_id', $user->id)->where('status', 'ditolak')->count();
 
-        $latestReports = Report::where('user_id', $user->id)
-            ->latest()
-            ->take(5)
+        // Recent activity: user's own reports, sorted by latest update
+        $recentActivity = Report::where('user_id', $user->id)
+            ->latest('updated_at')
+            ->take(4)
             ->get();
 
-        $recentRepairs = Report::whereIn('status', ['diproses', 'selesai'])
-            ->latest()
-            ->take(3)
-            ->get();
-
-        $unreadNotifications = $user->unreadNotifications()->take(5)->get();
-
-        return view('user.dashboard', compact('stats', 'latestReports', 'unreadNotifications', 'recentRepairs'));
+        return view('user.dashboard', compact(
+            'totalReports',
+            'pendingReports',
+            'inProgressReports',
+            'completedReports',
+            'rejectedReports',
+            'recentActivity'
+        ));
     }
 }

@@ -60,6 +60,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Laporan
     Route::get('/reports',                         [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/map',                     [AdminReportController::class, 'map'])->name('reports.map');
     Route::get('/reports/export-csv',              [AdminReportController::class, 'exportCsv'])->name('reports.export-csv');
     Route::get('/reports/export-pdf',              [AdminReportController::class, 'exportPdf'])->name('reports.export-pdf');
     Route::get('/reports/{report}',                [AdminReportController::class, 'show'])->name('reports.show');

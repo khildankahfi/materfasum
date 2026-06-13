@@ -17,14 +17,14 @@
 
     <style>
         :root {
-            --primary: #6366f1; /* Premium Indigo */
-            --primary-dark: #4f46e5;
+            --primary: #0284c7; /* Sky blue matching mockup */
+            --primary-dark: #0369a1;
             --sidebar-width: 270px;
-            --sidebar-bg: #0b0f19; /* Sleek Deep Dark */
-            --sidebar-text: #94a3b8;
-            --sidebar-hover: #1e293b;
-            --sidebar-active: #6366f1;
-            --bg-base: #f8fafc;
+            --sidebar-bg: #0082c8; /* Mockup solid blue */
+            --sidebar-text: #e0f2fe;
+            --sidebar-hover: rgba(0, 0, 0, 0.08);
+            --sidebar-active: rgba(0, 0, 0, 0.15);
+            --bg-base: #f0f5fa; /* Mockup light gray-blue background */
         }
         
         * {
@@ -64,69 +64,44 @@
             transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            border-right: 1px solid rgba(255,255,255,0.05);
         }
         
         .sidebar-brand {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 1.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.08);
         }
         
-        .sidebar-brand h5 {
+        .sidebar-brand h4 {
             color: #fff;
             font-weight: 800;
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             margin: 0;
             letter-spacing: -.5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-
-        .sidebar-brand span {
-            color: var(--primary);
-        }
-
-        .sidebar-brand .badge-admin {
-            background: linear-gradient(135deg, #ec4899, #d946ef); /* Bright Pink-Purple */
-            color: #fff;
-            font-size: .6rem;
-            padding: .25rem .5rem;
-            border-radius: 6px;
-            font-weight: 700;
-            letter-spacing: .5px;
-            box-shadow: 0 4px 10px rgba(236,72,153,0.2);
+        
+        .sidebar-brand small {
+            color: #e0f2fe;
+            opacity: 0.75;
+            font-size: 0.75rem;
         }
         
         .sidebar-nav {
             flex: 1;
-            padding: 1.5rem 1rem;
+            padding: 1.5rem 0;
             overflow-y: auto;
-        }
-        
-        .nav-label {
-            font-size: .65rem;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #475569;
-            padding: 0.5rem 0.75rem;
-            margin-top: 1rem;
-            margin-bottom: 0.25rem;
         }
         
         .sidebar .nav-link {
             color: var(--sidebar-text);
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
+            padding: 0.85rem 1.5rem;
             display: flex;
             align-items: center;
             gap: .75rem;
-            font-size: .85rem;
+            font-size: .88rem;
             font-weight: 600;
             text-decoration: none;
-            transition: all .2s ease;
-            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
         }
         
         .sidebar .nav-link:hover {
@@ -137,7 +112,7 @@
         .sidebar .nav-link.active {
             background: var(--sidebar-active);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+            border-left: 4px solid #fff;
         }
         
         .sidebar .nav-link i {
@@ -147,9 +122,10 @@
         }
         
         .sidebar-footer {
-            padding: 1.25rem;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 1.25rem 1.5rem;
             background: rgba(0,0,0,0.15);
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
         
         /* ── Main Content Wrapper ── */
@@ -162,11 +138,9 @@
         }
         
         .topbar {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
-            padding: .85rem 1.75rem;
+            padding: 1rem 2rem;
             position: sticky;
             top: 0;
             z-index: 999;
@@ -182,7 +156,7 @@
         
         /* Modern Cards */
         .card {
-            border: 1px solid #e2e8f0;
+            border: 1px solid #c7e2f5; /* Light blue border matching mockup */
             border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,.02);
             background: #fff;
@@ -198,32 +172,18 @@
         }
         
         .stat-card {
+            background: #fff;
+            border: 1px solid #c7e2f5;
             border-radius: 16px;
-            padding: 1.5rem;
-            color: #fff;
+            padding: 1.25rem 1.5rem;
             position: relative;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
         }
         
         .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card .icon {
-            font-size: 3rem;
-            opacity: .15;
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover .icon {
-            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
         }
         
         /* Badge Status Colors */
@@ -262,53 +222,41 @@
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <div class="d-flex align-items-center justify-content-between">
-            <h5 class="mb-0">
-                <div class="bg-indigo-600 text-white rounded-lg p-1.5 flex items-center justify-center shadow-md shadow-indigo-500/20" style="width:34px; height:34px;">
-                    <i class="bi bi-shield-fill-check"></i>
-                </div>
-                <span class="ms-2">Mater</span><span class="text-slate-400">fasum</span>
-            </h5>
-            <span class="badge-admin">ADMIN</span>
-        </div>
-        <small class="text-slate-500 font-bold uppercase tracking-wider mt-2.5 block text-[9px]">Panel Administrator</small>
+        <h4 class="mb-0">MaterFasum</h4>
+        <small>Admin Panel v1.0</small>
     </div>
 
     <nav class="sidebar-nav">
-        <div class="nav-label">Utama</div>
         <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-grid-1x2"></i> Dashboard
+            <i class="bi bi-grid-1x2"></i> Dashboard Utama
         </a>
-
-        <div class="nav-label">Manajemen</div>
-        <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') && !request()->has('status') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-text"></i> Semua Laporan
+        <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
+            <i class="bi bi-file-earmark-text"></i> Kelola Laporan
         </a>
-        <a href="{{ route('admin.reports.index') }}?status=menunggu" class="nav-link {{ request()->routeIs('admin.reports.*') && request('status') === 'menunggu' ? 'active' : '' }}">
-            <i class="bi bi-hourglass-split"></i> Menunggu Validasi
-            @php $pending = \App\Models\Report::where('status','menunggu')->count(); @endphp
-            @if($pending > 0)
-                <span class="badge bg-amber-500 text-white rounded-pill ms-auto text-[10px] font-bold py-0.5 px-2">{{ $pending }}</span>
-            @endif
+        <a href="{{ route('admin.reports.map') }}" class="nav-link {{ request()->routeIs('admin.reports.map') ? 'active' : '' }}">
+            <i class="bi bi-geo-alt"></i> Peta Wilayah GIS
         </a>
-        <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-            <i class="bi bi-people"></i> Manajemen User
+        <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.index') ? 'active' : '' }}">
+            <i class="bi bi-people"></i> Validasi Akun Warga
+        </a>
+        <a href="#" onclick="alert('Fitur Pengaturan Sistem sedang dikembangkan')" class="nav-link">
+            <i class="bi bi-gear"></i> Pengaturan Sistem
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="rounded-lg bg-indigo-600 text-white font-bold h-9 w-9 flex items-center justify-center shadow-md text-sm">
+        <div class="d-flex align-items-center gap-2.5 mb-3">
+            <div class="rounded-lg bg-white/20 text-white font-bold h-8 w-8 d-flex align-items-center justify-content-center text-xs">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
-            <div style="overflow:hidden;" class="leading-none">
+            <div class="leading-none min-w-0 flex-grow" style="overflow:hidden;">
                 <div class="text-white font-bold text-xs truncate">{{ auth()->user()->name }}</div>
-                <span class="text-slate-500 font-semibold text-[10px] uppercase mt-0.5 block">Administrator</span>
+                <span class="text-sky-200/60 font-semibold text-[9px] uppercase mt-0.5 block">Administrator</span>
             </div>
         </div>
         <form action="{{ route('logout') }}" method="POST" class="m-0">
             @csrf
-            <button type="submit" class="btn btn-sm btn-outline-danger border-0 hover:bg-rose-500/10 w-100 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+            <button type="submit" class="btn btn-sm text-white bg-white/10 hover:bg-rose-600 border-0 w-100 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all">
                 <i class="bi bi-box-arrow-right"></i> Logout Admin
             </button>
         </form>
@@ -322,18 +270,32 @@
                 <i class="bi bi-list fs-5"></i>
             </button>
             <div>
-                <h6 class="mb-0 font-extrabold text-slate-800">@yield('page-title', 'Dashboard')</h6>
-                <nav aria-label="breadcrumb" class="d-none d-md-block">
-                    <ol class="breadcrumb mb-0" style="font-size:.75rem;">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-400">Admin</a></li>
-                        @yield('breadcrumb')
-                    </ol>
-                </nav>
+                <h5 class="mb-0 text-indigo-950 font-extrabold text-base">
+                    @if(request()->routeIs('admin.dashboard'))
+                        Pusat Kendali Operasional Kota Surabaya
+                    @else
+                        @yield('page-title', 'Dashboard')
+                    @endif
+                </h5>
+                <small class="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-0.5 block">
+                    @if(request()->routeIs('admin.dashboard'))
+                        Status Koneksi: Aktif & Terintegrasi dengan Lapangan
+                    @else
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0" style="font-size:.72rem;">
+                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-400">Admin</a></li>
+                                @yield('breadcrumb')
+                            </ol>
+                        </nav>
+                    @endif
+                </small>
             </div>
         </div>
-        <span class="badge rounded-pill text-white" style="background:var(--primary);font-size:.75rem;box-shadow: 0 4px 10px rgba(99,102,241,0.2);">
-            <i class="bi bi-shield-check me-1"></i> Administrator
-        </span>
+        
+        <div class="d-flex align-items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-blue-600"></span>
+            <span class="font-bold text-slate-800 text-sm">Admin Utama</span>
+        </div>
     </header>
 
     <main class="main-content">
