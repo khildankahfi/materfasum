@@ -230,17 +230,26 @@
         <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <i class="bi bi-grid-1x2"></i> Dashboard Utama
         </a>
-        <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.index') ? 'active' : '' }}">
+        <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-text"></i> Kelola Laporan
         </a>
-        <a href="{{ route('admin.reports.map') }}" class="nav-link {{ request()->routeIs('admin.reports.map') ? 'active' : '' }}">
+        <a href="{{ route('admin.reports.map') }}" class="nav-link {{ request()->routeIs('admin.reports.map') ? 'active' : '' }}" style="padding-left:2.5rem; font-size:.82rem; opacity:.85;">
             <i class="bi bi-geo-alt"></i> Peta Wilayah GIS
         </a>
-        <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.index') ? 'active' : '' }}">
+        <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             <i class="bi bi-people"></i> Validasi Akun Warga
         </a>
-        <a href="#" onclick="alert('Fitur Pengaturan Sistem sedang dikembangkan')" class="nav-link">
-            <i class="bi bi-gear"></i> Pengaturan Sistem
+
+        {{-- Divider --}}
+        <div style="padding:.5rem 1.5rem .25rem; font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.4);">
+            Master Data
+        </div>
+
+        <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+            <i class="bi bi-tags"></i> Kategori Laporan
+        </a>
+        <a href="{{ route('admin.departments.index') }}" class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}">
+            <i class="bi bi-building"></i> Dinas Pelaksana
         </a>
     </nav>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportUpdate;
+use App\Models\ReportComment;
 use App\Notifications\ReportStatusUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,7 +52,7 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
-        $report->load('user', 'updates.admin', 'photos');
+        $report->load(['user', 'updates.admin', 'photos', 'comments.user', 'supports']);
         return view('admin.reports.show', compact('report'));
     }
 
@@ -173,5 +174,23 @@ class ReportController extends Controller
         $categories = Report::categories();
 
         return view('admin.reports.print', compact('reports', 'categories', 'request'));
+    }
+
+    public function storeComment(Request $request, Report $report)
+    {
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:1000'],
+        ], [
+            'body.required' => 'Isi komentar tidak boleh kosong.',
+            'body.max' => 'Komentar maksimal 1000 karakter.',
+        ]);
+
+        ReportComment::create([
+            'report_id' => $report->id,
+            'user_id' => Auth::id(),
+            'body' => $validated['body'],
+        ]);
+
+        return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
 }

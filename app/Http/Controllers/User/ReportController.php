@@ -5,6 +5,8 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportPhoto;
+use App\Models\ReportComment;
+use App\Models\Support;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -94,8 +96,7 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
-        if ($report->user_id !== Auth::id()) abort(403);
-        $report->load('updates.admin', 'photos');
+        $report->load(['updates.admin', 'photos', 'comments.user']);
         return view('user.reports.show', compact('report'));
     }
 
@@ -225,5 +226,81 @@ class ReportController extends Controller
             });
 
         return view('user.reports.map', compact('reports'));
+    }
+
+    public function toggleSupport(Report $report)
+    {
+        if ($report->user_id === Auth::id()) {
+            return back()->with('error', 'Anda tidak dapat mendukung laporan Anda sendiri.');
+        }
+
+        $support = Support::where('user_id', Auth::id())
+            ->where('report_id', $report->id)
+            ->first();
+
+        if ($support) {
+            $support->delete();
+            return back()->with('success', 'Dukungan untuk laporan ini telah dibatalkan.');
+        } else {
+            Support::create([
+                'user_id' => Auth::id(),
+                'report_id' => $report->id,
+            ]);
+            return back()->with('success', 'Terima kasih atas dukungan Anda untuk laporan ini!');
+        }
+    }
+
+    public function storeComment(Request $request, Report $report)
+    {
+        if ($report->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403, 'Anda tidak memiliki akses untuk mengirim komentar di laporan ini.');
+        }
+
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:1000'],
+        ], [
+            'body.required' => 'Isi komentar tidak boleh kosong.',
+            'body.max' => 'Komentar maksimal 1000 karakter.',
+        ]);
+
+        ReportComment::create([
+            'report_id' => $report->id,
+            'user_id' => Auth::id(),
+            'body' => $validated['body'],
+        ]);
+
+        return back()->with('success', 'Komentar berhasil ditambahkan.');
+    }
+
+    public function rate(Request $request, Report $report)
+    {
+        if ($report->user_id !== Auth::id()) {
+            abort(403, 'Hanya pelapor asli yang dapat memberikan ulasan.');
+        }
+
+        if ($report->status !== 'selesai') {
+            return back()->with('error', 'Ulasan hanya dapat diberikan setelah laporan selesai ditangani.');
+        }
+
+        if ($report->rating !== null) {
+            return back()->with('error', 'Anda sudah memberikan ulasan untuk laporan ini.');
+        }
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'rating_comment' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'rating.required' => 'Silakan pilih rating bintang.',
+            'rating.integer' => 'Format rating salah.',
+            'rating.min' => 'Rating minimal 1 bintang.',
+            'rating.max' => 'Rating maksimal 5 bintang.',
+        ]);
+
+        $report->update([
+            'rating' => $validated['rating'],
+            'rating_comment' => $validated['rating_comment'] ?? null,
+        ]);
+
+        return back()->with('success', 'Terima kasih atas penilaian Anda!');
     }
 }

@@ -11,6 +11,8 @@ use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\DepartmentController as AdminDepartmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,6 +48,9 @@ Route::middleware(['auth', 'user.role'])->prefix('user')->name('user.')->group(f
     Route::get('/reports/map', [UserReportController::class, 'map'])->name('reports.map');
     Route::resource('reports', UserReportController::class)
          ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+    Route::post('/reports/{report}/support', [UserReportController::class, 'toggleSupport'])->name('reports.support');
+    Route::post('/reports/{report}/comments', [UserReportController::class, 'storeComment'])->name('reports.comments.store');
+    Route::post('/reports/{report}/rate',     [UserReportController::class, 'rate'])->name('reports.rate');
     Route::get('/notifications',             [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read',  [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all',   [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
@@ -65,10 +70,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/reports/export-pdf',              [AdminReportController::class, 'exportPdf'])->name('reports.export-pdf');
     Route::get('/reports/{report}',                [AdminReportController::class, 'show'])->name('reports.show');
     Route::post('/reports/{report}/update-status', [AdminReportController::class, 'updateStatus'])->name('reports.update-status');
+    Route::post('/reports/{report}/comments',      [AdminReportController::class, 'storeComment'])->name('reports.comments.store');
     Route::delete('/reports/{report}',             [AdminReportController::class, 'destroy'])->name('reports.destroy');
 
     // User Management
     Route::get('/users',                 [AdminUserController::class, 'index'])->name('users.index');
     Route::patch('/users/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('users.toggle');
     Route::delete('/users/{user}',       [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+    // Kategori
+    Route::resource('categories', AdminCategoryController::class)
+         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+
+    // Dinas Pelaksana
+    Route::resource('departments', AdminDepartmentController::class)
+         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 });

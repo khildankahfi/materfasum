@@ -20,6 +20,14 @@ class Report extends Model
         'photo',
         'status',
         'rejection_reason',
+        'rating',
+        'rating_comment',
+        'department_id',
+        'target_completion_date',
+    ];
+
+    protected $casts = [
+        'target_completion_date' => 'datetime',
     ];
 
     public function user()
@@ -41,6 +49,32 @@ class Report extends Model
     public function photos()
     {
         return $this->hasMany(ReportPhoto::class)->orderBy('order');
+    }
+
+    public function supports()
+    {
+        return $this->hasMany(Support::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(ReportComment::class)->oldest();
+    }
+
+    public function isSupportedBy($userId)
+    {
+        if (!$userId) return false;
+        return $this->supports()->where('user_id', $userId)->exists();
+    }
+
+    public function categoryDetails()
+    {
+        return $this->belongsTo(Category::class, 'category', 'slug');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 
     /** Semua URL foto: prioritaskan photos table, fallback ke kolom photo lama */
@@ -81,6 +115,10 @@ class Report extends Model
 
     public function getCategoryLabelAttribute(): string
     {
+        if ($this->categoryDetails) {
+            return $this->categoryDetails->name;
+        }
+
         return match ($this->category) {
             'jalan'          => 'Jalan',
             'jembatan'       => 'Jembatan',
@@ -92,16 +130,23 @@ class Report extends Model
         };
     }
 
+    public function getSlaRemainingDaysAttribute()
+    {
+        if (!$this->target_completion_date) return null;
+        $target = \Carbon\Carbon::parse($this->target_completion_date)->startOfDay();
+        $today = \Carbon\Carbon::today();
+        
+        if ($today->greaterThan($target)) {
+            $diff = $today->diffInDays($target);
+            return $diff === 0 ? 'Batas waktu hari ini' : "Terlambat {$diff} hari";
+        }
+        
+        $diff = $today->diffInDays($target);
+        return $diff === 0 ? 'Batas waktu hari ini' : "{$diff} hari lagi";
+    }
+
     public static function categories(): array
     {
-        return [
-            'jalan'          => 'Jalan',
-            'jembatan'       => 'Jembatan',
-            'lampu'          => 'Lampu Jalan',
-            'taman'          => 'Taman',
-            'drainase'       => 'Drainase',
-            'fasilitas_umum' => 'Fasilitas Umum',
-            'lainnya'        => 'Lainnya',
-        ];
+        return Category::pluck('name', 'slug')->toArray();
     }
 }

@@ -223,9 +223,14 @@
                             <i class="bi bi-geo-alt me-1 text-slate-400"></i>Belum ada titik dipilih
                         @endif
                     </small>
-                    <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1.5 rounded-lg text-[10px] font-bold" onclick="resetMap()">
-                        <i class="bi bi-trash me-1"></i>Hapus Pin
-                    </button>
+                    <div class="d-flex gap-1.5">
+                        <button type="button" class="btn btn-sm btn-primary px-2.5 py-1.5 rounded-lg text-[10px] font-bold" onclick="getLocationGPS()">
+                            <i class="bi bi-cursor-fill me-1"></i>Gunakan GPS
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1.5 rounded-lg text-[10px] font-bold" onclick="resetMap()">
+                            <i class="bi bi-trash me-1"></i>Hapus Pin
+                        </button>
+                    </div>
                 </div>
                 
                 <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $report->latitude) }}">
@@ -277,6 +282,7 @@
         document.getElementById('latitude').value = lat.toFixed(7);
         document.getElementById('longitude').value = lng.toFixed(7);
         updateCoordsLabel(lat, lng);
+        reverseGeocode(lat, lng);
     });
 
     function updateCoordsLabel(lat, lng) {
@@ -292,6 +298,92 @@
         document.getElementById('latitude').value = '';
         document.getElementById('longitude').value = '';
         document.getElementById('coordsLabel').innerHTML = '<i class="bi bi-geo-alt me-1"></i>Belum ada titik dipilih';
+    }
+
+    function reverseGeocode(lat, lng) {
+        const locationInput = document.getElementById('location');
+        if (!locationInput) return;
+        
+        const originalPlaceholder = locationInput.placeholder;
+        locationInput.placeholder = "Mencari alamat otomatis...";
+        locationInput.disabled = true;
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+            headers: {
+                'User-Agent': 'MaterFasumApp/1.0 (khildankahfi/materfasum)'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.display_name) {
+                locationInput.value = data.display_name;
+            }
+        })
+        .catch(error => {
+            console.error('Error reverse geocoding:', error);
+        })
+        .finally(() => {
+            locationInput.placeholder = originalPlaceholder;
+            locationInput.disabled = false;
+        });
+    }
+
+    function getLocationGPS() {
+        if (!navigator.geolocation) {
+            Swal.fire({
+                title: 'Tidak Didukung',
+                text: 'Browser Anda tidak mendukung fitur deteksi lokasi GPS.',
+                icon: 'error',
+                customClass: { popup: 'rounded-2xl border-0 shadow-xl' }
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Mencari Lokasi...',
+            text: 'Harap izinkan akses GPS pada perangkat Anda.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            customClass: { popup: 'rounded-2xl border-0 shadow-xl' }
+        });
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                if (marker) map.removeLayer(marker);
+                marker = L.marker([lat, lng]).addTo(map);
+                map.setView([lat, lng], 16);
+
+                document.getElementById('latitude').value = lat.toFixed(7);
+                document.getElementById('longitude').value = lng.toFixed(7);
+                updateCoordsLabel(lat, lng);
+                reverseGeocode(lat, lng);
+
+                Swal.close();
+            },
+            function(error) {
+                Swal.close();
+                let errMsg = 'Gagal mendeteksi lokasi GPS.';
+                if (error.code === error.PERMISSION_DENIED) {
+                    errMsg = 'Akses lokasi ditolak. Harap aktifkan izin lokasi di browser Anda.';
+                }
+                Swal.fire({
+                    title: 'Deteksi GPS Gagal',
+                    text: errMsg,
+                    icon: 'error',
+                    customClass: { popup: 'rounded-2xl border-0 shadow-xl' }
+                });
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
     }
 
     // Existing Photos Deletion visual toggle

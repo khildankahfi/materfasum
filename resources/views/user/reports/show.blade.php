@@ -268,6 +268,115 @@
             @endif
         </div>
 
+        @if($report->status === 'selesai')
+            <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4">
+                <div class="mb-3">
+                    <h6 class="font-bold text-slate-800 mb-1">⭐ Penilaian Kinerja Perbaikan</h6>
+                    <p class="text-[11px] text-slate-400 font-semibold mb-0 uppercase tracking-wider">Berikan ulasan Anda terkait penanganan aduan ini</p>
+                </div>
+                
+                @if($report->rating === null)
+                    @if(auth()->id() === $report->user_id)
+                        <form action="{{ route('user.reports.rate', $report) }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-xs font-semibold text-slate-500">Nilai:</span>
+                                <div class="star-rating d-flex gap-1.5 fs-4">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="bi bi-star text-slate-300 cursor-pointer star-btn" data-value="{{ $i }}" onclick="setRating({{ $i }})"></i>
+                                    @endfor
+                                </div>
+                                <input type="hidden" name="rating" id="ratingValue" value="">
+                            </div>
+                            
+                            <div>
+                                <textarea name="rating_comment" rows="3" class="form-control border-slate-200/80 text-xs shadow-none" placeholder="Tuliskan ulasan atau terima kasih untuk petugas lapangan (opsional)..." style="border-radius: 12px; resize: none;"></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-sm btn-primary px-3 py-2 rounded-lg text-xs font-bold hover-lift">
+                                Kirim Penilaian
+                            </button>
+                        </form>
+                    @else
+                        <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-400 font-medium text-center">
+                            <i class="bi bi-info-circle me-1"></i> Menunggu ulasan pengerjaan dari pelapor aduan.
+                        </div>
+                    @endif
+                @else
+                    <div class="p-3 bg-slate-50/50 rounded-xl border border-slate-100 space-y-2">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="text-xs font-semibold text-slate-500">Penilaian:</span>
+                            <div class="text-amber-500 fs-5">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <i class="bi bi-{{ $i <= $report->rating ? 'star-fill' : 'star' }}"></i>
+                                @endfor
+                            </div>
+                        </div>
+                        @if($report->rating_comment)
+                            <div class="p-3 bg-white rounded-lg border border-slate-100 text-xs font-semibold text-slate-600 leading-normal">
+                                <i class="bi bi-chat-left-quote me-1 text-slate-400"></i>{{ $report->rating_comment }}
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        <!-- Discussion Thread Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mt-4">
+            <div class="mb-4">
+                <h5 class="font-bold text-slate-800 mb-1"><i class="bi bi-chat-dots me-2 text-blue-500"></i>Diskusi Laporan</h5>
+                <p class="text-xs text-slate-400 font-semibold mb-0 uppercase tracking-wider">Tanya jawab dan koordinasi penyelesaian laporan</p>
+            </div>
+
+            @if($report->comments->isEmpty())
+                <div class="text-center py-5 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 mb-4">
+                    <i class="bi bi-chat-square-text fs-3 d-block mb-1.5 text-slate-300"></i>
+                    <p class="mb-0 text-xs font-semibold">Belum ada diskusi di laporan ini.</p>
+                </div>
+            @else
+                <div class="space-y-3 mb-4 max-h-[350px] overflow-y-auto pe-1">
+                    @foreach($report->comments as $comment)
+                        @php $isAdminComment = $comment->user->isAdmin(); @endphp
+                        <div class="p-3 rounded-2xl border {{ $isAdminComment ? 'bg-blue-50/30 border-blue-100/60 ms-5' : 'bg-slate-50/40 border-slate-100 me-5' }}">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <div class="rounded-full font-bold h-6 w-6 d-flex align-items-center justify-content-center text-[10px] text-white
+                                         {{ $isAdminComment ? 'bg-blue-600' : 'bg-slate-500' }}">
+                                        {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-800">
+                                        {{ $comment->user->name }}
+                                        @if($isAdminComment)
+                                            <span class="badge bg-blue-100 text-blue-700 text-[8px] py-0.5 px-1.5 ms-1">Admin</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <small class="text-slate-400 text-[9px] font-bold">{{ $comment->created_at->diffForHumans() }}</small>
+                            </div>
+                            <p class="text-xs text-slate-600 font-semibold mb-0 leading-normal" style="white-space: pre-line;">{{ $comment->body }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            @if(auth()->id() === $report->user_id || auth()->user()->isAdmin())
+                <form action="{{ route('user.reports.comments.store', $report) }}" method="POST" class="m-0">
+                    @csrf
+                    <div class="input-group">
+                        <textarea name="body" rows="1" class="form-control border-slate-200/80 text-xs shadow-none py-2.5 px-3" placeholder="Tulis tanggapan atau komentar diskusi..." style="border-radius:12px 0 0 12px; resize:none;"></textarea>
+                        <button type="submit" class="btn btn-primary px-4 rounded-xl font-bold text-xs" style="border-radius:0 12px 12px 0;">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </form>
+            @else
+                <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-400 font-medium text-center">
+                    <i class="bi bi-lock-fill me-1"></i> Diskusi ini hanya terbuka untuk pelapor dan pihak administrator.
+                </div>
+            @endif
+        </div>
+
     </div>
 
     <!-- Right Column: Actions & Quick Status -->
@@ -305,7 +414,30 @@
                 <i class="bi bi-arrow-left"></i> Kembali ke Riwayat
             </a>
 
-            @if($report->status === 'menunggu')
+            <!-- Upvote / Dukungan Button -->
+            @if(auth()->id() !== $report->user_id)
+                <form action="{{ route('user.reports.support', $report) }}" method="POST" class="m-0">
+                    @csrf
+                    @php $isSupported = $report->isSupportedBy(auth()->id()); @endphp
+                    <button type="submit" class="btn {{ $isSupported ? 'btn-danger shadow-danger/10' : 'btn-outline-primary' }} rounded-xl py-2.5 px-3 text-xs font-bold w-100 flex items-center justify-center gap-1.5 hover-lift">
+                        <i class="bi {{ $isSupported ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                        {{ $isSupported ? 'Batal Dukung Aduan' : 'Dukung Aduan Ini' }}
+                        <span class="badge {{ $isSupported ? 'bg-white text-danger' : 'bg-primary text-white' }} rounded-pill ms-1">
+                            {{ $report->supports()->count() }}
+                        </span>
+                    </button>
+                </form>
+            @else
+                <div class="btn btn-light border border-slate-200 text-slate-500 rounded-xl py-2.5 px-3 text-xs font-bold w-100 flex items-center justify-center gap-1.5 cursor-default">
+                    <i class="bi bi-heart-fill text-rose-500"></i>
+                    Dukungan Warga: 
+                    <span class="badge bg-slate-200 text-slate-700 rounded-pill ms-1">
+                        {{ $report->supports()->count() }}
+                    </span>
+                </div>
+            @endif
+
+            @if($report->user_id === auth()->id() && $report->status === 'menunggu')
                 <a href="{{ route('user.reports.edit', $report) }}" class="btn btn-light border border-slate-200 text-amber-600 rounded-xl py-2 px-3 text-xs font-bold text-decoration-none w-100 flex items-center justify-center gap-1.5 hover-lift">
                     <i class="bi bi-pencil-square"></i> Edit Data Laporan
                 </a>
@@ -317,9 +449,11 @@
                     </button>
                 </form>
             @else
-                <div class="bg-slate-50 text-slate-400 rounded-xl p-3 border border-slate-100 text-[10px] font-semibold leading-normal text-start">
-                    <i class="bi bi-lock-fill me-1"></i> Kontrol ubah laporan telah dikunci secara otomatis karena aduan ini sudah mulai ditinjau/diproses oleh petugas.
-                </div>
+                @if($report->user_id === auth()->id())
+                    <div class="bg-slate-50 text-slate-400 rounded-xl p-3 border border-slate-100 text-[10px] font-semibold leading-normal text-start">
+                        <i class="bi bi-lock-fill me-1"></i> Kontrol ubah laporan telah dikunci secara otomatis karena aduan ini sudah mulai ditinjau/diproses oleh petugas.
+                    </div>
+                @endif
             @endif
         </div>
 
@@ -355,4 +489,21 @@
      .openPopup();
 </script>
 @endif
+
+<script>
+    function setRating(val) {
+        document.getElementById('ratingValue').value = val;
+        const stars = document.querySelectorAll('.star-btn');
+        stars.forEach((star, index) => {
+            if (index < val) {
+                star.classList.remove('bi-star');
+                star.classList.add('bi-star-fill', 'text-amber-500');
+                star.classList.remove('text-slate-300');
+            } else {
+                star.classList.remove('bi-star-fill', 'text-amber-500');
+                star.classList.add('bi-star', 'text-slate-300');
+            }
+        });
+    }
+</script>
 @endpush

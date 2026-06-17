@@ -53,10 +53,15 @@
 
         {{-- Main Info Card --}}
         <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mb-4">
-            <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
-                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold py-1 px-3 rounded-lg border border-slate-200/40">
-                    {{ $report->category_label }}
-                </span>
+            <div class="d-flex align-items-center justify-between gap-3 mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="bg-slate-100 text-slate-700 text-[10px] font-bold py-1 px-3 rounded-lg border border-slate-200/40">
+                        {{ $report->category_label }}
+                    </span>
+                    <span class="bg-rose-50 text-rose-700 text-[10px] font-bold py-1 px-3 rounded-lg border border-rose-100">
+                        <i class="bi bi-heart-fill me-1"></i>{{ $report->supports->count() }} Didukung Warga
+                    </span>
+                </div>
                 <span class="status-badge badge-{{ $report->status }}">
                     <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
                     {{ $report->status_label }}
@@ -136,6 +141,24 @@
                     <p class="text-xs text-rose-700 font-semibold mb-0 leading-normal">{{ $report->rejection_reason }}</p>
                 </div>
             @endif
+
+            @if($report->rating !== null)
+                <div class="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 mt-4 space-y-2">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <h6 class="font-bold text-slate-800 text-xs mb-0">⭐ Penilaian Kinerja dari Pelapor</h6>
+                        <div class="text-amber-500 text-xs">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="bi bi-{{ $i <= $report->rating ? 'star-fill' : 'star' }}"></i>
+                            @endfor
+                        </div>
+                    </div>
+                    @if($report->rating_comment)
+                        <p class="text-xs text-slate-600 font-semibold mb-0 leading-normal bg-white p-3 rounded-xl border border-slate-100">
+                            <i class="bi bi-chat-left-quote me-1 text-slate-400"></i>{{ $report->rating_comment }}
+                        </p>
+                    @endif
+                </div>
+            @endif
         </div>
 
         {{-- Timeline Riwayat --}}
@@ -204,6 +227,55 @@
                     @endforeach
                 </div>
             @endif
+        </div>
+
+        <!-- Discussion Thread Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/60 p-4 sm:p-5 shadow-sm mt-4">
+            <div class="mb-4">
+                <h5 class="font-bold text-slate-800 mb-1"><i class="bi bi-chat-dots me-2 text-blue-500"></i>Diskusi Laporan</h5>
+                <p class="text-xs text-slate-400 font-semibold mb-0 uppercase tracking-wider">Tanya jawab dan koordinasi penyelesaian laporan</p>
+            </div>
+
+            @if($report->comments->isEmpty())
+                <div class="text-center py-5 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 mb-4">
+                    <i class="bi bi-chat-square-text fs-3 d-block mb-1.5 text-slate-350"></i>
+                    <p class="mb-0 text-xs font-semibold">Belum ada diskusi di laporan ini.</p>
+                </div>
+            @else
+                <div class="space-y-3 mb-4 max-h-[350px] overflow-y-auto pe-1">
+                    @foreach($report->comments as $comment)
+                        @php $isAdminComment = $comment->user->isAdmin(); @endphp
+                        <div class="p-3 rounded-2xl border {{ $isAdminComment ? 'bg-blue-50/30 border-blue-100/60 ms-5' : 'bg-slate-50/40 border-slate-100 me-5' }}">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <div class="rounded-full font-bold h-6 w-6 d-flex align-items-center justify-content-center text-[10px] text-white
+                                         {{ $isAdminComment ? 'bg-blue-600' : 'bg-slate-500' }}">
+                                        {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-800">
+                                        {{ $comment->user->name }}
+                                        @if($isAdminComment)
+                                            <span class="badge bg-blue-100 text-blue-700 text-[8px] py-0.5 px-1.5 ms-1">Admin</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <small class="text-slate-400 text-[9px] font-bold">{{ $comment->created_at->diffForHumans() }}</small>
+                            </div>
+                            <p class="text-xs text-slate-600 font-semibold mb-0 leading-normal" style="white-space: pre-line;">{{ $comment->body }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <form action="{{ route('admin.reports.comments.store', $report) }}" method="POST" class="m-0">
+                @csrf
+                <div class="input-group">
+                    <textarea name="body" rows="1" class="form-control border-slate-200/80 text-xs shadow-none py-2.5 px-3" placeholder="Tulis tanggapan atau komentar diskusi..." style="border-radius:12px 0 0 12px; resize:none;"></textarea>
+                    <button type="submit" class="btn btn-primary px-4 rounded-xl font-bold text-xs" style="border-radius:0 12px 12px 0;">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
