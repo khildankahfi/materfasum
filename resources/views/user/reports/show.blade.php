@@ -121,6 +121,28 @@
                     </p>
                 </div>
 
+                @if($report->department_id || $report->target_completion_date)
+                    <div class="row g-3">
+                        @if($report->department_id)
+                            <div class="col-sm-6">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1.5 block">Dinas Pelaksana</label>
+                                <p class="text-sm font-bold text-slate-700 mb-0">
+                                    <i class="bi bi-building me-1.5 text-slate-400"></i>{{ $report->department->name }}
+                                </p>
+                            </div>
+                        @endif
+                        @if($report->target_completion_date)
+                            <div class="col-sm-6">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1.5 block">Target Selesai (SLA)</label>
+                                <p class="text-sm font-bold text-slate-700 mb-0">
+                                    <i class="bi bi-calendar-event me-1.5 text-slate-400"></i>{{ $report->target_completion_date->format('d M Y') }}
+                                    <span class="badge bg-blue-50 text-blue-600 border border-blue-100 ms-1">{{ $report->sla_remaining_days }}</span>
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
                 <!-- Description -->
                 <div>
                     <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1.5 block">Deskripsi Kerusakan</label>

@@ -79,6 +79,21 @@
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tanggal Lapor</p>
                     <p class="text-sm font-semibold text-slate-700 mb-0">{{ $report->created_at->format('d F Y, H:i') }} WIB</p>
                 </div>
+                @if($report->department_id)
+                    <div class="col-sm-6">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Dinas Pelaksana</p>
+                        <p class="text-sm font-semibold text-slate-700 mb-0"><i class="bi bi-building me-1 text-slate-400"></i>{{ $report->department->name }}</p>
+                    </div>
+                @endif
+                @if($report->target_completion_date)
+                    <div class="col-sm-6">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Batas Waktu (SLA)</p>
+                        <p class="text-sm font-semibold text-slate-700 mb-0">
+                            <i class="bi bi-calendar-event me-1 text-slate-400"></i>{{ $report->target_completion_date->format('d F Y') }}
+                            <span class="badge bg-slate-100 text-slate-600 ms-1">{{ $report->sla_remaining_days }}</span>
+                        </p>
+                    </div>
+                @endif
                 <div class="col-12">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Lokasi Kerusakan</p>
                     <p class="text-sm font-semibold text-slate-700 mb-0">
@@ -315,7 +330,7 @@
                         <select name="status" id="statusSelect"
                                 class="form-select border-slate-200/80 text-xs shadow-none text-slate-700"
                                 style="border-radius:12px; padding:.65rem .8rem; font-weight:600;"
-                                onchange="toggleRejection(this.value)">
+                                onchange="toggleFormFields(this.value)">
                             <option value="">— Pilih Status Baru —</option>
                             @if($report->status === 'menunggu')
                                 <option value="diproses">▶ Setujui & Proses</option>
@@ -325,6 +340,28 @@
                                 <option value="ditolak">✕ Tolak Laporan</option>
                             @endif
                         </select>
+                    </div>
+
+                    <div id="processFields" style="display:none;" class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 d-block">
+                                Dinas Pelaksana <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="department_id" class="form-select border-slate-200/80 text-xs shadow-none text-slate-700" style="border-radius:12px; padding:.65rem .8rem; font-weight:600;">
+                                <option value="">— Pilih Dinas —</option>
+                                @if(isset($departments))
+                                    @foreach($departments as $dept)
+                                        <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 d-block">
+                                Target Selesai (SLA) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="date" name="target_completion_date" class="form-control border-slate-200/80 text-xs shadow-none text-slate-700" style="border-radius:12px; padding:.65rem .8rem; font-weight:600;">
+                        </div>
                     </div>
 
                     <div>
@@ -418,8 +455,13 @@
 </script>
 @endif
 <script>
-    function toggleRejection(val) {
+    function toggleFormFields(val) {
         document.getElementById('rejectionReasonField').style.display = val === 'ditolak' ? 'block' : 'none';
+        
+        const processFields = document.getElementById('processFields');
+        if (processFields) {
+            processFields.style.display = val === 'diproses' ? 'block' : 'none';
+        }
     }
 </script>
 @endpush

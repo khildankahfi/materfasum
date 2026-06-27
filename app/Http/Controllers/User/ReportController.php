@@ -96,7 +96,7 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
-        $report->load(['updates.admin', 'photos', 'comments.user']);
+        $report->load(['updates.admin', 'photos', 'comments.user', 'department']);
         return view('user.reports.show', compact('report'));
     }
 

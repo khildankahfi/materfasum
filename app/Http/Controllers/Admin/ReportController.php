@@ -52,17 +52,20 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
-        $report->load(['user', 'updates.admin', 'photos', 'comments.user', 'supports']);
-        return view('admin.reports.show', compact('report'));
+        $report->load(['user', 'updates.admin', 'photos', 'comments.user', 'supports', 'department']);
+        $departments = \App\Models\Department::orderBy('name')->get();
+        return view('admin.reports.show', compact('report', 'departments'));
     }
 
     public function updateStatus(Request $request, Report $report)
     {
         $validated = $request->validate([
-            'status'           => ['required', 'in:diproses,selesai,ditolak'],
-            'note'             => ['nullable', 'string', 'max:1000'],
-            'rejection_reason' => ['required_if:status,ditolak', 'nullable', 'string', 'max:500'],
-            'photo_after'      => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'status'                 => ['required', 'in:diproses,selesai,ditolak'],
+            'note'                   => ['nullable', 'string', 'max:1000'],
+            'rejection_reason'       => ['required_if:status,ditolak', 'nullable', 'string', 'max:500'],
+            'photo_after'            => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'department_id'          => ['nullable', 'exists:departments,id'],
+            'target_completion_date' => ['nullable', 'date'],
         ], [
             'status.required'              => 'Status wajib dipilih.',
             'rejection_reason.required_if' => 'Alasan penolakan wajib diisi jika laporan ditolak.',
@@ -81,10 +84,17 @@ class ReportController extends Controller
             'photo_after' => $photoAfterPath,
         ]);
 
-        $report->update([
+        $updateData = [
             'status'           => $validated['status'],
             'rejection_reason' => $validated['status'] === 'ditolak' ? $validated['rejection_reason'] : null,
-        ]);
+        ];
+        
+        if ($validated['status'] === 'diproses') {
+            $updateData['department_id'] = $validated['department_id'] ?? null;
+            $updateData['target_completion_date'] = $validated['target_completion_date'] ?? null;
+        }
+
+        $report->update($updateData);
 
         $report->user->notify(new ReportStatusUpdated($report, $validated['note']));
 
