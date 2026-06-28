@@ -202,6 +202,13 @@
             gap: 4px;
         }
         
+        /* Overrides to prevent Bootstrap's .badge from forcing text color to white */
+        .badge.text-indigo-700 { color: #4338ca !important; }
+        .badge.text-blue-700 { color: #1d4ed8 !important; }
+        .badge.text-slate-700 { color: #334155 !important; }
+        .badge.text-slate-600 { color: #475569 !important; }
+        .badge.text-blue-600 { color: #2563eb !important; }
+        
         .table > :not(caption) > * > * {
             padding: 1rem 1.25rem;
             vertical-align: middle;
