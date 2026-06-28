@@ -10,6 +10,8 @@ use App\Notifications\ReportStatusUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ReportController extends Controller
 {
@@ -73,7 +75,18 @@ class ReportController extends Controller
 
         $photoAfterPath = null;
         if ($request->hasFile('photo_after')) {
-            $photoAfterPath = $request->file('photo_after')->store('report_updates', 'public');
+            $file = $request->file('photo_after');
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::random(40) . '.' . $extension;
+            $photoAfterPath = 'report_updates/' . $filename;
+
+            // Read and compress image
+            $img = Image::read($file);
+            if ($img->width() > 1200) {
+                $img->scale(width: 1200);
+            }
+            $encoded = $img->encodeByExtension($extension, quality: 80);
+            Storage::disk('public')->put($photoAfterPath, (string) $encoded);
         }
 
         ReportUpdate::create([
