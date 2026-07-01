@@ -10,6 +10,8 @@ use App\Models\Support;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ReportController extends Controller
 {
@@ -81,7 +83,18 @@ class ReportController extends Controller
         // Simpan foto-foto
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $i => $file) {
-                $path = $file->store('reports', 'public');
+                $extension = $file->getClientOriginalExtension();
+                $filename = Str::random(40) . '.' . $extension;
+                $path = 'reports/' . $filename;
+
+                // Read and compress image
+                $img = Image::read($file);
+                if ($img->width() > 1200) {
+                    $img->scale(width: 1200);
+                }
+                $encoded = $img->encodeByExtension($extension, quality: 80);
+                Storage::disk('public')->put($path, (string) $encoded);
+
                 ReportPhoto::create([
                     'report_id' => $report->id,
                     'path'      => $path,
@@ -161,7 +174,19 @@ class ReportController extends Controller
             $existingCount = $report->photos()->count();
             foreach ($request->file('photos') as $i => $file) {
                 if ($existingCount + $i >= 5) break; // max 5
-                $path = $file->store('reports', 'public');
+                
+                $extension = $file->getClientOriginalExtension();
+                $filename = Str::random(40) . '.' . $extension;
+                $path = 'reports/' . $filename;
+
+                // Read and compress image
+                $img = Image::read($file);
+                if ($img->width() > 1200) {
+                    $img->scale(width: 1200);
+                }
+                $encoded = $img->encodeByExtension($extension, quality: 80);
+                Storage::disk('public')->put($path, (string) $encoded);
+
                 ReportPhoto::create([
                     'report_id' => $report->id,
                     'path'      => $path,
