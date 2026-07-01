@@ -46,8 +46,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::middleware(['auth', 'user.role'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
     Route::get('/reports/map', [UserReportController::class, 'map'])->name('reports.map');
+    Route::post('reports', [UserReportController::class, 'store'])
+         ->name('reports.store')
+         ->middleware('throttle:report-submission');
     Route::resource('reports', UserReportController::class)
-         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+         ->only(['index', 'create', 'show', 'edit', 'update', 'destroy']);
     Route::post('/reports/{report}/support', [UserReportController::class, 'toggleSupport'])->name('reports.support');
     Route::post('/reports/{report}/comments', [UserReportController::class, 'storeComment'])->name('reports.comments.store');
     Route::post('/reports/{report}/rate',     [UserReportController::class, 'rate'])->name('reports.rate');
