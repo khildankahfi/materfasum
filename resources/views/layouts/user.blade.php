@@ -340,6 +340,136 @@
             });
         });
     </script>
+    @auth
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.Echo) {
+                const userId = "{{ auth()->id() }}";
+                
+                window.Echo.private(`App.Models.User.${userId}`)
+                    .notification((notification) => {
+                        console.log('Real-time notification received:', notification);
+                        
+                        // Show sweetalert2 toast
+                        Swal.fire({
+                            title: '🔔 Update Laporan',
+                            text: notification.message,
+                            icon: 'info',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 5000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        });
+
+                        // Update navbar bell icon (add red dot)
+                        const bellLink = document.querySelector('a.position-relative[href*="notifications"]');
+                        if (bellLink) {
+                            let badge = bellLink.querySelector('span.position-absolute');
+                            if (!badge) {
+                                badge = document.createElement('span');
+                                badge.className = 'position-absolute';
+                                badge.style.cssText = 'top:-4px;right:-4px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid #fff;';
+                                bellLink.appendChild(badge);
+                            }
+                        }
+
+                        // Update dropdown menu unread notifications badge
+                        const dropdownBadge = document.querySelector('.dropdown-menu .badge');
+                        if (dropdownBadge) {
+                            const count = parseInt(dropdownBadge.textContent.trim()) || 0;
+                            dropdownBadge.textContent = count + 1;
+                        } else {
+                            const dropdownLink = document.querySelector('.dropdown-menu a[href*="notifications"]');
+                            if (dropdownLink) {
+                                const badgeSpan = document.createElement('span');
+                                badgeSpan.className = 'badge bg-danger ms-1 rounded-pill';
+                                badgeSpan.style.fontSize = '.65rem';
+                                badgeSpan.textContent = '1';
+                                dropdownLink.appendChild(badgeSpan);
+                            }
+                        }
+
+                        // Prepend to notifications list if on the page
+                        const container = document.querySelector('.divide-y');
+                        if (container) {
+                            // Remove empty placeholder if any
+                            const emptyState = document.querySelector('.text-center.py-12');
+                            if (emptyState) {
+                                emptyState.remove();
+                                // Create divide-y structure if deleted
+                                const listContainer = document.createElement('div');
+                                listContainer.className = 'divide-y divide-slate-100';
+                                document.querySelector('.bg-white.rounded-2xl').appendChild(listContainer);
+                            }
+
+                            // Define status colors & icons
+                            const status = notification.status || 'menunggu';
+                            const colors = {
+                                selesai: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                                diproses: 'bg-blue-50 text-blue-600 border-blue-100',
+                                ditolak: 'bg-rose-50 text-rose-600 border-rose-100',
+                                menunggu: 'bg-amber-50 text-amber-600 border-amber-100'
+                            };
+                            const icons = {
+                                selesai: 'bi-check-lg',
+                                diproses: 'bi-gear-wide-connected',
+                                ditolak: 'bi-x-lg',
+                                menunggu: 'bi-hourglass-split'
+                            };
+
+                            const badgeStyle = colors[status] || 'bg-slate-50 text-slate-600 border-slate-100';
+                            const iconStyle = icons[status] || 'bi-bell';
+
+                            const itemHtml = `
+                                <div class="p-4 flex gap-4 transition-colors duration-150 bg-amber-50/10">
+                                    <div class="rounded-xl h-11 w-11 flex items-center justify-center flex-shrink-0 border ${badgeStyle} shadow-sm">
+                                        <i class="bi ${iconStyle} fs-5"></i>
+                                    </div>
+                                    <div class="flex-grow min-w-0">
+                                        <div class="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
+                                            <div class="space-y-1">
+                                                <div class="font-bold text-sm text-slate-800 leading-snug">
+                                                    \${notification.message}
+                                                    <span class="bg-rose-500 text-white text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full ms-1.5 align-middle tracking-wider shadow-sm shadow-rose-500/10">Baru</span>
+                                                </div>
+                                                \${notification.note ? `
+                                                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-650 font-medium leading-normal flex items-start gap-1.5 max-w-2xl">
+                                                        <i class="bi bi-chat-left-quote text-slate-400 mt-0.5 flex-shrink-0"></i>
+                                                        <span>Catatan petugas: "\${notification.note}"</span>
+                                                    </div>
+                                                ` : ''}
+                                                <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 pt-0.5">
+                                                    <span><i class="bi bi-clock me-1"></i>baru saja</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 flex-shrink-0">
+                                                \${notification.report_id ? `
+                                                    <a href="/user/reports/\${notification.report_id}" class="btn btn-sm btn-light border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold px-3 py-2 flex items-center gap-1 hover-lift text-decoration-none">
+                                                        <i class="bi bi-eye"></i> Detail
+                                                    </a>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                            const currentList = document.querySelector('.divide-y');
+                            if (currentList) {
+                                currentList.insertAdjacentHTML('afterbegin', itemHtml);
+                            }
+                        }
+                    });
+            }
+        });
+    </script>
+    @endauth
+
     @stack('scripts')
 </body>
 </html>
