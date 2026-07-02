@@ -156,34 +156,97 @@
                     </div>
                 </div>
                 <div class="col-12 col-lg-5">
-                    <!-- Workflow Interactive Preview -->
+                    <!-- GIS Map Preview Card -->
                     <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/40">
-                        <div class="d-flex items-center justify-between mb-3.5 border-bottom border-slate-100 pb-3">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Visualisasi Peta GIS Gresik</span>
-                            <span class="status-badge status-diproses py-0.5 px-2 text-[10px]">sedang diproses</span>
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-3" style="border-bottom:1px solid #f1f5f9;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-map text-blue-600" style="font-size:.95rem;"></i>
+                                <span style="font-size:.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Visualisasi Peta GIS Gresik</span>
+                            </div>
+                            <!-- Live badge with pulse animation -->
+                            <span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;font-size:.65rem;font-weight:700;padding:.25rem .65rem;">
+                                <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;animation:gis-pulse 1.5s ease-in-out infinite;"></span>
+                                LIVE
+                            </span>
                         </div>
-                        
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100/70 position-relative mb-3 flex items-center justify-center" style="height: 230px;">
-                            <!-- Simple custom line art mockup representing a map -->
-                            <div class="w-100 h-100 position-relative">
-                                <div class="bg-slate-200/80 absolute" style="height: 4px; left: 10%; right: 10%; top: 45%; transform: rotate(-5deg); border-radius:2px;"></div>
-                                <div class="bg-slate-200/80 absolute" style="width: 4px; top: 10%; bottom: 10%; left: 40%; border-radius:2px;"></div>
-                                <div class="bg-slate-200/80 absolute" style="width: 4px; top: 20%; bottom: 20%; left: 70%; border-radius:2px;"></div>
-                                
-                                <div class="bg-amber-500 rounded-full h-4 w-4 border-2 border-white absolute shadow-md" style="top: 25%; left: 38%; cursor: pointer;" title="Lampu Jalan Padam"></div>
-                                <div class="bg-blue-500 rounded-full h-4 w-4 border-2 border-white absolute shadow-md" style="top: 40%; left: 68%; cursor: pointer;" title="Jalan Ambles"></div>
-                                <div class="bg-emerald-500 rounded-full h-4 w-4 border-2 border-white absolute shadow-md" style="top: 75%; left: 15%; cursor: pointer;" title="Taman Rusak"></div>
+
+                        <!-- Map mockup area -->
+                        <div style="background:linear-gradient(145deg,#f0f7ff,#e8f4fd);border-radius:16px;border:1px solid #dbeafe;position:relative;overflow:hidden;height:220px;margin-bottom:12px;">
+                            <!-- Subtle grid lines (road mockup) -->
+                            <div style="position:absolute;inset:0;">
+                                <!-- Horizontal roads -->
+                                <div style="position:absolute;height:3px;background:rgba(148,163,184,.35);left:8%;right:8%;top:38%;border-radius:2px;transform:rotate(-3deg);"></div>
+                                <div style="position:absolute;height:2px;background:rgba(148,163,184,.25);left:5%;right:30%;top:62%;border-radius:2px;transform:rotate(2deg);"></div>
+                                <!-- Vertical roads -->
+                                <div style="position:absolute;width:3px;background:rgba(148,163,184,.35);top:8%;bottom:8%;left:42%;border-radius:2px;"></div>
+                                <div style="position:absolute;width:2px;background:rgba(148,163,184,.25);top:20%;bottom:15%;left:72%;border-radius:2px;"></div>
+                                <!-- Water/park area -->
+                                <div style="position:absolute;width:60px;height:40px;background:rgba(187,247,208,.5);border:1px solid rgba(134,239,172,.4);border-radius:10px;bottom:15%;right:18%;"></div>
+                            </div>
+
+                            <!-- Map label -->
+                            <div style="position:absolute;top:10px;left:12px;background:rgba(255,255,255,.85);backdrop-filter:blur(4px);border:1px solid #e2e8f0;border-radius:8px;padding:.25rem .6rem;font-size:.65rem;font-weight:700;color:#475569;">
+                                <i class="bi bi-geo-alt-fill text-blue-600 me-1"></i>Kab. Gresik
+                            </div>
+
+                            <!-- Pin: Menunggu (amber) -->
+                            <div style="position:absolute;top:22%;left:40%;" title="Lampu Jalan Padam — Menunggu">
+                                <div style="position:relative;display:inline-block;">
+                                    <div style="width:16px;height:16px;border-radius:50%;background:#f59e0b;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(245,158,11,.5);cursor:pointer;"></div>
+                                    <div style="position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-radius:50%;background:rgba(245,158,11,.3);animation:gis-pulse 2s ease-in-out infinite;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Pin: Diproses (blue) -->
+                            <div style="position:absolute;top:38%;left:70%;" title="Jalan Berlubang — Diproses">
+                                <div style="position:relative;display:inline-block;">
+                                    <div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(59,130,246,.5);cursor:pointer;"></div>
+                                    <div style="position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-radius:50%;background:rgba(59,130,246,.3);animation:gis-pulse 2s ease-in-out infinite .4s;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Pin: Selesai (green) -->
+                            <div style="position:absolute;top:68%;left:18%;" title="Taman Rusak — Selesai">
+                                <div style="position:relative;display:inline-block;">
+                                    <div style="width:16px;height:16px;border-radius:50%;background:#10b981;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(16,185,129,.5);cursor:pointer;"></div>
+                                    <div style="position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-radius:50%;background:rgba(16,185,129,.3);animation:gis-pulse 2s ease-in-out infinite .8s;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Diproses pin 2 -->
+                            <div style="position:absolute;top:55%;left:55%;" title="Drainase — Diproses">
+                                <div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 2px 6px rgba(59,130,246,.4);cursor:pointer;"></div>
                             </div>
                         </div>
 
-                        <div class="p-3 bg-blue-50/50 rounded-2xl border border-blue-100/30 flex items-start gap-2.5">
-                            <i class="bi bi-info-circle text-blue-600 fs-5 mt-0.5"></i>
+                        <!-- Legend row -->
+                        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:10px;flex-wrap:wrap;">
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;color:#6b7280;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Menunggu
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;color:#6b7280;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Diproses
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;color:#6b7280;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Selesai
+                            </span>
+                        </div>
+
+                        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:.65rem .85rem;display:flex;align-items:flex-start;gap:.6rem;">
+                            <i class="bi bi-info-circle text-blue-600" style="font-size:.9rem;margin-top:1px;"></i>
                             <div>
-                                <small class="text-xs text-blue-900 font-bold block mb-0.5">Pantau Peta GIS Gresik</small>
-                                <p class="text-[10px] text-slate-500 font-semibold mb-0 leading-normal">Seluruh aduan warga terpetakan secara otomatis menggunakan koordinat GPS untuk memudahkan penugasan dinas pengerjaan lapangan.</p>
+                                <small style="font-size:.7rem;font-weight:700;color:#1e40af;display:block;margin-bottom:2px;">Pantau Peta GIS Gresik</small>
+                                <p style="font-size:.65rem;color:#64748b;font-weight:600;margin:0;line-height:1.5;">Seluruh aduan warga terpetakan secara otomatis menggunakan koordinat GPS untuk memudahkan penugasan dinas pengerjaan lapangan.</p>
                             </div>
                         </div>
                     </div>
+
+                    <style>
+                        @keyframes gis-pulse {
+                            0%, 100% { transform: scale(1); opacity: .8; }
+                            50% { transform: scale(1.8); opacity: 0; }
+                        }
+                    </style>
                 </div>
             </div>
         </div>
