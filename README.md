@@ -3,8 +3,6 @@
 > **Sistem Informasi Pelaporan Fasilitas Umum**  
 > Aplikasi web berbasis Laravel untuk melaporkan, memantau, dan mengelola kondisi fasilitas umum.
 
-![Dashboard Preview](dasboard.png)
-
 ---
 
 ## 📋 Daftar Isi
