@@ -166,7 +166,3 @@ Akses aplikasi di: **http://localhost:8000**
 | `npm run build`       | Build aset untuk production                       |
 
 ---
-
-## 📄 Lisensi
-
-Proyek ini dilisensikan di bawah [MIT License](https://opensource.org/licenses/MIT).
